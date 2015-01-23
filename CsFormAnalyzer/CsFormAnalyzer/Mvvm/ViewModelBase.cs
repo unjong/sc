@@ -73,6 +73,18 @@ namespace CsFormAnalyzer.Mvvm
                 return ScResxLocator.Instance;
             }
         }
+
+		/// <summary>
+		/// 비동기 action 을 수행하는 동안 UI를 Wait 상태로 표시합니다.
+		/// </summary>
+		public async void InvokeAsyncAction(Action action)
+		{
+			IsShowProgressRing = true;
+
+			await Task.Factory.StartNew(() => { action.Invoke(); });
+
+			IsShowProgressRing = false;
+		}
 	}
 
     public class ScResxLocator : INotifyPropertyChanged

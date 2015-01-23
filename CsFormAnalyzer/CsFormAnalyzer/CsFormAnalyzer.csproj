@@ -69,6 +69,8 @@
     <Compile Include="Core\ComponentAnalysisConfig.cs" />
     <Compile Include="Core\GridColumnInfoParser.cs" />
     <Compile Include="Core\HeaderParser.cs" />
+    <Compile Include="Core\SpreadSheetAnalysis.cs" />
+    <Compile Include="Utils\DataExtension.cs" />
     <Compile Include="Utils\IOHelper.cs" />
     <Compile Include="Utils\ScExtentions.cs" />
     <Compile Include="Properties\SCResxControlText.en-US.Designer.cs">

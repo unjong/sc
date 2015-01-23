@@ -43,15 +43,16 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Search Types :" HorizontalAlignment="Right" />
-                    <TextBox Grid.Row="0" Grid.Column="2" Text="{Binding SearchTypes}" />
+                    <TextBox Grid.Row="0" Grid.Column="2" Text="{Binding SearchTypes}" TextWrapping="Wrap" />
                     <TextBlock Grid.Row="2" Grid.Column="0" Text="Search Properties :" HorizontalAlignment="Right" />
-                    <TextBox Grid.Row="2" Grid.Column="2" Text="{Binding SearchProperties}" />
+                    <TextBox Grid.Row="2" Grid.Column="2" Text="{Binding SearchProperties}" TextWrapping="Wrap" />
                     <TextBlock Grid.Row="4" Grid.Column="0" Text="Search Events :" HorizontalAlignment="Right" />
-                    <TextBox Grid.Row="4" Grid.Column="2" Text="{Binding SearchEvents}" />
+                    <TextBox Grid.Row="4" Grid.Column="2" Text="{Binding SearchEvents}" TextWrapping="Wrap" />
                     <TextBlock Grid.Row="6" Grid.Column="0" Text="Remove Prefix :" HorizontalAlignment="Right" />
-                    <TextBox Grid.Row="6" Grid.Column="2" Text="{Binding RemovePrefixs}" />
+                    <TextBox Grid.Row="6" Grid.Column="2" Text="{Binding RemovePrefixs}" TextWrapping="Wrap" />
                     <TextBlock Grid.Row="8" Grid.Column="0" Text="Selector Types :" HorizontalAlignment="Right" />
-                    <TextBox Grid.Row="8" Grid.Column="2" Text="{Binding SelectorTypes}" ToolTip="Selector Type은 ItemsSource와 SelectedItem 프로퍼티가 추가됩니다." />
+                    <TextBox Grid.Row="8" Grid.Column="2" Text="{Binding SelectorTypes}" TextWrapping="Wrap" 
+                             ToolTip="Selector Type은 ItemsSource와 SelectedItem 프로퍼티가 추가됩니다." />
                 </Grid>
 
                 <Grid Grid.Column="1" Margin="4,0,0,0">
@@ -72,11 +73,11 @@
             <DataGrid Grid.Row="0" ItemsSource="{Binding ComponentInfoList}" SelectedItem="{Binding SelectedComponentInfo}" ScrollViewer.HorizontalScrollBarVisibility="Visible" Margin="0,20,0,0" />
             <StackPanel Grid.Row="1">
                 <TextBlock Text="Check Lines :" />
-                <ListBox ItemsSource="{Binding CheckLines}" />
+                <ListBox ItemsSource="{Binding CheckLines}" DisplayMemberPath="Line" MaxHeight="100" />
             </StackPanel>
         </Grid>
-        
-        <GridSplitter Grid.Row="2" HorizontalAlignment="Stretch" />
+
+        <GridSplitter Grid.Row="2" HorizontalAlignment="Stretch" bh:StateRestoreBehavior.GridSplitter="5C855A41-D989-4CD2-A4ED-BBBC21D579A1" />
 
         <Grid Grid.Row="3">
             <Grid.ColumnDefinitions>
@@ -86,8 +87,8 @@
             </Grid.ColumnDefinitions>
 
             <TextBlock Grid.Column="0" Text="Selected Details :" />
-            <DataGrid Grid.Column="0" ItemsSource="{Binding FilteredPropertyList}" SelectedItem="{Binding SelectedPropertyListItem}" IsReadOnly="True" Margin="0,20,0,0" />            
-            <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" />
+            <DataGrid Grid.Column="0" ItemsSource="{Binding FilteredPropertyList}" SelectedItem="{Binding SelectedPropertyListItem}" IsReadOnly="True" Margin="0,20,0,0" />
+            <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" bh:StateRestoreBehavior.GridSplitter="7E2D4738-63AC-4E1B-9FFA-928BE3E24B78" />
             <TextBlock Grid.Column="2" Text="Code :" />
             <TextBox Grid.Column="2" Text="{Binding FullCode}" bh:TextBoxExtendBehavior.SearchText="{Binding SelectedLine}"
                      AcceptsReturn="True" Margin="0,20,0,0" ScrollViewer.VerticalScrollBarVisibility="Auto" />

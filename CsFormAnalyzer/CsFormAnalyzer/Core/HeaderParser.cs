@@ -32,10 +32,15 @@ namespace CsFormAnalyzer.Core
         }
         public static void ReplaceColumnInfo(string[] columnInfo)
         {
-            for (int i = 0; i < columnInfo.Length; i++)
-            {
+			for (int i = 0; i < columnInfo.Length; i++)
+			{
                 columnInfo[i] = columnInfo[i].Trim().Replace("\"", "").Replace(");", "").Replace("CommonModule.CellTypeProperty.", "").Replace("CommonModule.Alignment.", "");
-            }
+                columnInfo[i] = columnInfo[i].Replace("HIS.WinUI.Controls.Spread.CommonModule.CellTypeProperty.", "")
+                                               .Replace("HIS.WinUI.Controls.Spread.CommonModule.Alignment.", "")
+                                               .Replace("HIS.WinUI.Controls.Spread.", "");
+                if (columnInfo[i].LastIndexOf("//") > 0)
+                    columnInfo[i].Remove(columnInfo[i].LastIndexOf("//"));
+			}
         }
     }
 
@@ -192,7 +197,7 @@ namespace CsFormAnalyzer.Core
             {
                 int rt = 0;
                 //public void InitialHeader(int Seq, string Title, CommonModule.CellTypeProperty CellTypeName, bool Lock, float Width, CommonModule.Alignment TextAlignment, bool Hidden);
-                if (int.TryParse(columnInfos[0], out rt))
+                if (int.TryParse(columnInfos[0], out rt) || int.TryParse( columnInfos[4], out rt))
                 {
                     //dr["Binding"] = columnInfos[13];
                     dr["Title"] = columnInfos[1];
@@ -382,7 +387,7 @@ namespace CsFormAnalyzer.Core
                     //dr["Binding"] = columnInfos[13];
                     dr["Title"] = columnInfos[1];
                     dr["DataType"] = "ShowSeperator="+columnInfos[2];
-                    dr["CellType"] = "MondeyType";
+                    dr["CellType"] = "MoneyType";
                     dr["Format"] ="ShowCurrencymask="+columnInfos[3];
 
                 }
@@ -392,7 +397,7 @@ namespace CsFormAnalyzer.Core
                     dr["Binding"] = columnInfos[3];
                    dr["Title"] = columnInfos[0];
                     dr["DataType"] = "ShowSeperator="+columnInfos[1];
-                    dr["CellType"] = "MondeyType";
+                    dr["CellType"] = "MoneyType";
                     dr["Format"] ="ShowCurrencymask="+columnInfos[2];
                 } 
 	        #endregion
@@ -411,7 +416,7 @@ namespace CsFormAnalyzer.Core
                     dr["HorizontalAlignment"] = columnInfos[4];
                     dr["Hidden"] = columnInfos[5];
                     dr["DataType"] = "ShowSeperator="+columnInfos[6];
-                    dr["CellType"] = "MondeyType";
+                    dr["CellType"] = "MoneyType";
                     dr["Format"] ="ShowCurrencymask="+columnInfos[7];
                 }
                   //public void InitialMoneyHeader(string Title, bool Lock, float Width, CommonModule.Alignment TextAlignment, bool Hidden, bool ShowSeperator, bool ShowCurrencymark, string DataField);
@@ -424,7 +429,7 @@ namespace CsFormAnalyzer.Core
                     dr["HorizontalAlignment"] = columnInfos[3];
                     dr["Hidden"] = columnInfos[4];
                       dr["DataType"] = "ShowSeperator="+columnInfos[5];
-                    dr["CellType"] = "MondeyType";
+                    dr["CellType"] = "MoneyType";
                     dr["Format"] ="ShowCurrencymask="+columnInfos[6];
                 } 
 	#endregion
@@ -444,7 +449,7 @@ namespace CsFormAnalyzer.Core
                     dr["HorizontalAlignment"] = columnInfos[7];
                     dr["Hidden"] = columnInfos[8];
                    dr["DataType"] = "ShowSeperator="+columnInfos[9];
-                    dr["CellType"] = "MondeyType";
+                    dr["CellType"] = "MoneyType";
                     dr["Format"] ="ShowCurrencymask="+columnInfos[10];
                 }
                   //public void InitialMoneyHeader(string Title, Color BackColor, bool Lock, float Width, CommonModule.SortOrder Asc, int KeyCol, CommonModule.Alignment TextAlignment, bool Hidden, bool ShowSeperator, bool ShowCurrencymark, string DataField);
@@ -458,7 +463,7 @@ namespace CsFormAnalyzer.Core
                     dr["HorizontalAlignment"] = columnInfos[6];
                     dr["Hidden"] = columnInfos[7];
                      dr["DataType"] = "ShowSeperator="+columnInfos[8];
-                    dr["CellType"] = "MondeyType";
+                    dr["CellType"] = "MoneyType";
                     dr["Format"] ="ShowCurrencymask="+columnInfos[9];
                 } 
 	#endregion

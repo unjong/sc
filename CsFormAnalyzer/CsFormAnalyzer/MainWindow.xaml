@@ -33,7 +33,7 @@
                 </ComboBox>
             </Grid>
 
-            <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch" />
+            <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch" bh:StateRestoreBehavior.GridSplitter="46C48C99-B0CD-423F-8066-76E7B1AFE77B" />
             
             <Grid Grid.Column="2">
                 <Grid>

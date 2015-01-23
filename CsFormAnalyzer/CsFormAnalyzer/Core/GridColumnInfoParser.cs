@@ -132,11 +132,11 @@ namespace CsFormAnalyzer.Core
                  string line = string.Empty;
 
                  bool headerStart = false;
+                 string prefix = string.Empty;
                  DataTable dt2 = null;
                  while ((line = file.ReadLine()) != null)
                  {
                      #region CommonModule .InitialHeader ()   type
-                     
                      line = line.Trim();
                      #region Sample data
                      //public void InitialDateTimeHeader(int Seq, string Title, bool Lock, float Width, CommonModule.Alignment DateTimeAlignment, CommonModule.DateTimeFormat datetimeFormat);
@@ -175,14 +175,35 @@ namespace CsFormAnalyzer.Core
                      //       public void InitialValuedComboHeader(st 
                      #endregion
                      if (line.StartsWith("//") || line.Length == 0) continue;
+                     if(line.StartsWith("/*"))
+                     {
+                         while( (line = file.ReadLine()) !=null )
+                         {
+                             if (line.EndsWith("*/"))                                
+                                 break;
+                         }
+                         continue;
+                     }
+
                      if (line.Contains(".InitialHeader") || line.Contains(".InitialDateTimeHeader") || line.Contains(".InitialMaskEditHeader") ||
                          line.Contains(".InitialMoneyHeader") || line.Contains(".InitialValuedComboHeader") )
                      {
 
                          HeaderParser parser = HeaderParser.CreateParser(line);
 
-                         if (!headerStart)
+                         // 아래와 같이 spread 가 달라지는 경우는 다시 시작 해야함.
+                         // this._spread_ORD.InitialHeader("내원번호", CommonModule.CellTypeProperty.TextCell, true, 100, CommonModule.Alignment.Left, false, "내원번호");
+                         //  this._spread_OPD.InitialHeader("확인구분명", CommonModule.CellTypeProperty.ComboBoxCell, false, 100, CommonModule.Alignment.Left, false, "확인구분명");
+                         string pprefix = line.Substring( 0, line.LastIndexOf("Initial")) ;
+                         bool samePrefix = prefix.Equals(pprefix);
+
+                         if (!headerStart || !samePrefix )
                          {
+                             if (!samePrefix && dt2 != null && dt2.Rows.Count > 0 && prefix.Length>0)
+                             {
+                                 dtList.Add(dt2);
+                             }
+                             prefix = pprefix;
                              dt2 = GetDataTable();
                          }
                          headerStart = true;
@@ -211,8 +232,12 @@ namespace CsFormAnalyzer.Core
                          if (columnArgs.Contains("//"))
                              columnArgs = columnArgs.Remove(columnArgs.LastIndexOf("//"));
                          string[] columnInfos = columnArgs.Split(',');
-                         DataRow dr = dt2.Rows.Add();
-                         parser.ParseRow(columnInfos, dr);
+                         if (columnInfos.Length > 7)
+                         {
+                             HeaderParser.ReplaceColumnInfo(columnInfos);
+                             DataRow dr = dt2.Rows.Add();
+                             parser.ParseRow(columnInfos, dr);
+                         }
                      }
                      else
                      {
@@ -244,31 +269,48 @@ namespace CsFormAnalyzer.Core
                              if (line.Contains("};"))
                              {
                                  // 그리드 정보가 끝났으니 Grid 컨트롤을 추가 
-                                 dtList.Add(dt);
+                                 if(dt.Rows.Count>0)
+                                    dtList.Add(dt);
 
                                  break;
                              }
                              if (line.StartsWith("//")) continue;
                              if (Regex.IsMatch(line.Replace(" ",""), "{\"", RegexOptions.RightToLeft))
                              {
-                                 DataRow dr = dt.Rows.Add();
+                                
                                  string[] columnInfo = line.Remove(line.LastIndexOf("}")).Split(',');
-                                 for (int i = 0; i < columnInfo.Length; i++)
+                                 HeaderParser.ReplaceColumnInfo(columnInfo);
+                                 //for (int i = 0; i < columnInfo.Length; i++)
+                                 //{
+                                 //    columnInfo[i] = columnInfo[i].TrimStart('{').Replace("\t", "").Replace("\"", "").Trim();
+                                 //}
+                                 if (columnInfo.Length > 11 )
                                  {
-                                     columnInfo[i] = columnInfo[i].TrimStart('{').Replace("\t", "").Replace("\"", "").Trim();
+                                     DataRow dr = dt.Rows.Add();
+                                     dr["Binding"] = columnInfo[0];
+                                     dr["Title"] = columnInfo[1];
+                                     dr["DataType"] = columnInfo[2];
+                                     dr["Width"] = columnInfo[3];
+                                     dr["Hidden"] = columnInfo[4];
+                                     dr["CellType"] = columnInfo[5];
+                                     //dr["Unique"] = columnInfo[6];
+                                     dr["NotNull"] = columnInfo[7];
+                                     dr["Length"] = columnInfo[8];
+                                     dr["ReadOnly"] = columnInfo[9];
+                                     dr["DefaultValue"] = columnInfo[11];
                                  }
-
-                                 dr["Binding"] = columnInfo[0];
-                                 dr["Title"] = columnInfo[1];
-                                 dr["DataType"] = columnInfo[2];
-                                 dr["Width"] = columnInfo[3];
-                                 dr["Hidden"] = columnInfo[4];
-                                 dr["CellType"] = columnInfo[5];
-                                 dr["Unique"] = columnInfo[6];
-                                 dr["NotNull"] = columnInfo[7];
-                                 dr["Length"] = columnInfo[8];
-                                 dr["ReadOnly"] = columnInfo[9];
-                                 dr["DefaultValue"] = columnInfo[11];
+                                 else if(columnInfo.Length == 6)
+                                 {
+                                     // 0.ColumnName_1.Label_2.DataType_3.Width_4.Hidden_5.CellType
+			                         //   "ExamNm",		"검사명",			"String",	"80",		"",		"Text"},
+                                     DataRow dr = dt.Rows.Add();
+                                     dr["Binding"] = columnInfo[0];
+                                     dr["Title"] = columnInfo[1];
+                                     dr["DataType"] = columnInfo[2];
+                                     dr["Width"] = columnInfo[3];
+                                     dr["Hidden"] = columnInfo[4];
+                                     dr["CellType"] = columnInfo[5];
+                                 }
                                  //dr["HorizontalAlignment"] = columnInfo[12];
                              }
                          }
@@ -278,6 +320,8 @@ namespace CsFormAnalyzer.Core
              }
               
             
+
+
             return dtList;
         }
 
@@ -337,24 +381,22 @@ namespace CsFormAnalyzer.Core
             {
                 int num = 0;
 
-                //hd[0] = new HIS.WinUI.Controls.Spread.CommonModule.Header(0, "검사항목", HIS.WinUI.Controls.Spread.CommonModule.CellTypeProperty.TextCell,
-                //Color.White, true, 130, 10, 0, 0, HIS.WinUI.Controls.Spread.CommonModule.SortOrder.Asc,
-                //-1, HIS.WinUI.Controls.Spread.CommonModule.Alignment.Left, false);
+
+                //public Header(int Seq, string Title, CommonModule.CellTypeProperty CellTypeName, Color BackColor, bool Lock, float Width,
+                // int DataLength, int Precision, int NumericScale, CommonModule.SortOrder Asc, int KeyCol, CommonModule.Alignment TextAlignment, bool Hidden);
+               
                 if (int.TryParse(columnInfo[0], out num))
                 {
                     //dr["Binding"] = columnInfos[6];
                     dr["Title"] = columnInfo[1];
                     dr["DataType"] = columnInfo[2];
-                    dr["Width"] = columnInfo[4];
-                    dr["Hidden"] = columnInfo[12];
                     dr["CellType"] = columnInfo[2];
-                    //dr["Unique"] = columnInfos[];
-                    //dr["NotNull"] = columnInfos[7];
-                    dr["Length"] = columnInfo[6];
+                    dr["BackColor"] = columnInfo[3];
                     dr["ReadOnly"] = columnInfo[4];
-                    //dr["SaveNo"] = columnInfos[10];
-                    //dr["DefaultValue"] = columnInfos[11];
+                    dr["Width"] = columnInfo[5];
+                    dr["Length"] = columnInfo[6];
                     dr["HorizontalAlignment"] = columnInfo[11];
+                    dr["Hidden"] = columnInfo[12];                 
                 }
                 else
                 {
@@ -419,7 +461,7 @@ namespace CsFormAnalyzer.Core
             dt.Columns.Add("Hidden");
             dt.Columns.Add("NotNull");
             dt.Columns.Add("ReadOnly");
-            dt.Columns.Add("Unique");
+            //dt.Columns.Add("Unique");
             dt.Columns.Add("Length");
             dt.Columns.Add("Width");
             dt.Columns.Add("HorizontalAlignment");

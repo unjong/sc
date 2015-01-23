@@ -15,6 +15,7 @@ namespace CsFormAnalyzer.Core
 	{
 		private int initIndexStart;
 		private int initIndexEnd;
+		private string initCode;
 
 		public string Path { get; set; }
 		public string[] SearchTypes { get; set; }
@@ -24,7 +25,7 @@ namespace CsFormAnalyzer.Core
 		public string[] SelectorTypes { get; set; }		
 
 		public DataTable ResultTable { get; private set; }
-		public List<string> CheckLines { get; private set; }
+		public List<CheckLineItem> CheckLines { get; private set; }
 		public string Code { get; set; }
 
 		public List<ComponentPropertyInfo> PropertyList { get; set; }
@@ -38,7 +39,7 @@ namespace CsFormAnalyzer.Core
 
 		private void Initialize()
 		{
-			this.CheckLines = new List<string>();
+			this.CheckLines = new List<CheckLineItem>();
 			this.ResultTable = null;
 			this.Code = null;
 
@@ -56,20 +57,32 @@ namespace CsFormAnalyzer.Core
 				if (File.Exists(this.Path) != true) return false;
 
 				var code = FindCode(this.Path);
-				this.Code = code;
 
 				code = code.Replace("\t", " ");
 				code = Regex.Replace(code, "[ ]+", " ");
 				this.codeLines = code.Split('\n');
+				this.Code = code;
 
+				this.initIndexStart = code.IndexOf("private void InitializeComponent()");
+				this.initIndexEnd = code.IndexOf("this.ResumeLayout(false);", initIndexStart);
+				if (this.initIndexStart > 0 && this.initIndexEnd> 0)
+					this.initCode = code.Substring(initIndexStart, initIndexEnd - initIndexStart);
+				
 				var dt = MakeReturnTable();
+
+				AnalysisBeforeAmend(code, dt);
 
 				AnalysisTypes(code, dt, this.SearchTypes);
 				AnalysisProperties(code, dt, this.SearchProperties);
 				AnalysisEvents(code, dt, this.SearchEvents);
+
+				AnalysisAfterAmend(code, dt);
+
 				AnalysisDepth(code, dt);
 
-				this.ResultTable = GetAmendTable(dt);
+				FillPropertyList(code, dt);
+
+				this.ResultTable = GetAmendTable(code, dt);
 #if !DEBUG
 			}
 			catch(Exception ex)
@@ -84,13 +97,15 @@ namespace CsFormAnalyzer.Core
 				return true;
 		}
 
+
 		private string FindCode(string path, string cs = null)
 		{
-			var code = IOHelper.ReadFile(path);
+			var code = IOHelper.ReadFileToString(path);
 			if (cs != null) code = string.Join("\n", cs, code);
 
-			initIndexStart = code.IndexOf("private void InitializeComponent()");
-			if (initIndexStart < 0)
+
+			var indexStart = code.IndexOf("private void InitializeComponent()");
+			if (indexStart < 0)
 			{
 				if (path.IndexOf("Designer.cs") < 0)
 				{
@@ -102,8 +117,6 @@ namespace CsFormAnalyzer.Core
 					throw new Exception("윈도우 폼이 아닙니다.");
 				}
 			}
-
-			initIndexEnd = code.IndexOf("this.ResumeLayout(false);", initIndexStart);
 			return code;
 		}
 		
@@ -203,8 +216,7 @@ namespace CsFormAnalyzer.Core
 					{
 						check = "child";
 						propertyName = propertyName.Substring(propertyName.LastIndexOf(".") + 1);
-					}
-					if (searchProperties.Contains(propertyName) != true) continue;
+					}					
 				}
 				{	// value
 					var index_s = line.IndexOf(" = ") + " = ".Length;
@@ -223,6 +235,8 @@ namespace CsFormAnalyzer.Core
 					};
 					this.PropertyList.Add(item);
 
+					if (searchProperties.Contains(propertyName) != true) continue;
+
 					if ("TabIndex".Equals(propertyName))
 					{
 						var tabIndex = Convert.ToInt32(value);
@@ -236,11 +250,11 @@ namespace CsFormAnalyzer.Core
 					else if ("Location".Equals(propertyName))
 					{
 						var matches = Regex.Matches(value, @"[\d]+").Cast<Match>().Select(p => p.Value).ToArray();						
-						if (matches.Count() > 0)
+						if (matches.Count() > 1)
 						{
 							var left = matches.ElementAt(0);
 							var top = matches.ElementAt(1);
-							var rows = dt.Select(string.Format("Name = '{0}'", name));
+							var rows = dt.AsEnumerable().Where(p => p.ToStr("name").Equals(name) && p.IsNull("top"));
 							foreach (var row in rows)
 							{
 								row["top"] = top;
@@ -274,7 +288,10 @@ namespace CsFormAnalyzer.Core
 								}								
 							}
 
-							row["바인딩"] = string.Format("{0}{1}Property", GetRemovedPrefixName(name), mapPropertyName);
+							if (propertyName.Contains("DisplayMember", "ValueMember") != true)
+							{
+								row["바인딩"] = string.Format("{0}{1}Property", GetRemovedPrefixName(name), mapPropertyName);
+							}							
 							row["Check"] = check;
 							row["line"] = line;
 							//row["IsInit"] = IsInit(code, line);
@@ -326,8 +343,7 @@ namespace CsFormAnalyzer.Core
 					var index_s = line.IndexOf(name) + name.Length + 1;
 					var index_e = line.IndexOf(" += ", index_s) - index_s;
 					if (index_e < 1) continue;
-					eventName = line.Substring(index_s, index_e);
-					if (searchEvents.Contains(eventName) != true) continue;
+					eventName = line.Substring(index_s, index_e);					
 				}
 				{	// eventHandler
 					var index_s = line.IndexOf("(") + "(".Length;
@@ -345,6 +361,8 @@ namespace CsFormAnalyzer.Core
 						Line = line
 					};
 					this.PropertyList.Add(item);
+
+					if (searchEvents.Contains(eventName) != true) continue;
 
 					var row = GetTargetRowByName(dt, name);
 					if (row != null)
@@ -370,6 +388,57 @@ namespace CsFormAnalyzer.Core
 		}
 
 		/// <summary>
+		/// 분석 이전 보정을 수행합니다.
+		/// </summary>
+		private void AnalysisBeforeAmend(string code, DataTable dt)
+		{
+			if (code.IndexOf("pnlLeft") > 0)
+			{
+				var row1 = GetNewRow(dt);
+				row1["type"] = "Panel";
+				row1["Name"] = "pnlLeft";
+				row1["컨트롤명"] = "Panel";
+				row1["line"] = "generator macro apply";
+
+				var row2 = GetNewRow(dt);
+				row2["type"] = "Panel";
+				row2["Name"] = "pnlRight";
+				row2["컨트롤명"] = "Panel";
+				row2["line"] = "generator macro apply";
+			}
+		}
+
+		/// <summary>
+		/// 분석 이후 보정을 수행합니다.
+		/// </summary>
+		private void AnalysisAfterAmend(string code, DataTable dt)
+		{
+			var dtRows = dt.AsEnumerable();
+
+			{	// Button 에 Click 커맨드가 바인딩되어있지 않을경우 추가합니다.
+				var buttonRows = dtRows
+					.Where(p => p.ToStr("type").Equals("Button"))
+					.GroupBy(item => new { Name = item.Field<string>("Name") })
+					.Select(group => new { Name = group.Key.Name });
+
+				foreach (var buttonRow in buttonRows)
+				{
+					var clickRow = dtRows.Where(p => p.ToStr("name").Equals(buttonRow.Name)
+						&& p.ToStr("target").Equals("Click")).FirstOrDefault();
+
+					if (clickRow != null) continue;
+
+					var row = GetTargetRowByName(dt, buttonRow.Name);
+					row["대상"] = "Command";
+					row["바인딩"] = string.Format("{0}Command", GetRemovedPrefixName(buttonRow.Name));
+					row["비고"] = "Click";
+					row["target"] = "Click";
+					row["line"] = "generator macro apply";
+				}
+			}
+		}
+
+		/// <summary>
 		/// 콤포넌트의 VisualTree 상의 깊이를 분석하여 정렬번호를 부여합니다.
 		/// </summary>
 		private void AnalysisDepth(string code, DataTable dt)
@@ -378,9 +447,19 @@ namespace CsFormAnalyzer.Core
 			var init_e = code.IndexOf("this.ResumeLayout(false);", initIndexStart);
 			var initCode = code.Substring(init_s, init_e - init_s);
 
-			var panelTypes = new string[]{ "TabControl", "TabPage", "Panel", "GroupBox" };
-			var tree = new Dictionary<string, List<string>>();
-			tree.Add("root", new List<string>());
+			var panelTypes = new string[]{ "TabControl", "TabPage", "Panel", "GroupBox", "FlowLayoutPanel", "TableLayoutPanel", "FrameCtrl" };
+			var tree = new List<DepthItem>();
+			tree.Add(new DepthItem() { Name = "root", Top = 0, Left = 0 });
+			{
+				var row = dt.Select(string.Format("Name='{0}'", "pnlLeft")).FirstOrDefault();
+				if (row != null)
+					tree.Add(new DepthItem() { Name = "pnlLeft", Top = row.ToInt("Top"), Left = row.ToInt("Left") });
+			}
+			{
+				var row = dt.Select(string.Format("Name='{0}'", "pnlRight")).FirstOrDefault();
+				if (row != null)
+					tree.Add(new DepthItem() { Name = "pnlRight", Top = row.ToInt("Top"), Left = row.ToInt("Left") });
+			}
 
 			//var regex = "";
 			//foreach (var type in panelTypes)
@@ -413,7 +492,8 @@ namespace CsFormAnalyzer.Core
 					tabPageList.Add(name, ++groupNum);
 				}
 
-				tree.Add(name, new List<string>());
+				var row = dt.Select(string.Format("Name='{0}'", name)).FirstOrDefault();
+				tree.Add(new DepthItem() { Name = name, Top = row.ToInt("Top"), Left = row.ToInt("Left") });
 			}
 
 			// 패널트리에 아이템 채우기
@@ -432,43 +512,118 @@ namespace CsFormAnalyzer.Core
 					target = line.Substring(index_s, index_e);
 				}
 
-				var list = string.IsNullOrEmpty(parent) ? tree["root"] : tree[parent];
-				list.Add(target);
+				var treeItem = string.IsNullOrEmpty(parent)
+					? tree.Where(p => p.Name.Equals("root")).FirstOrDefault()
+					: tree.Where(p => p.Name.Equals(parent)).FirstOrDefault();
+
+				var row = dt.Select(string.Format("Name='{0}'", target)).FirstOrDefault();
+				treeItem.Items.Add(new DepthItem() { Name = target, Top = row.ToInt("Top"), Left = row.ToInt("Left") });
+
+				//var row = dt.Select(string.Format("Name='{0}'", target)).FirstOrDefault();
+				//tree.Add(new ContainerInfo() { Name = target, Top = row.ToInt("Top"), Left = row.ToInt("Top") });
 			}
 						
-			// 아이템에 인덱스 부여						
-			ReqursiveApplySortIndex(tree, dt, tree.SingleOrDefault(p => p.Key.Equals("root")), "win", 0);
+			// 아이템에 인덱스 부여			
+			ReqursiveApplySortIndex(tree, dt, tree.Where(p => p.Name.Equals("root")).FirstOrDefault(), "root", "");
 
-			foreach(var tabPage in tabPageList)
-			{
-				var rows = dt.AsEnumerable().Where(p => string.IsNullOrEmpty(p.Field<string>("depthAdd")) != true
-					&& p.Field<string>("depthAdd").IndexOf(tabPage.Key) >= 0);
-				foreach(var row in rows)
-				{
-					row["group"] = tabPage.Value;
-				}
-			}
+			//foreach(var tabPage in tabPageList)
+			//{
+			//	var rows = dt.AsEnumerable().Where(p => string.IsNullOrEmpty(p.ToStr("depthAdd")) != true
+			//		&& p.ToStr("depthAdd").IndexOf(tabPage.Key) >= 0);
+			//	foreach(var row in rows)
+			//	{
+			//		row["group"] = tabPage.Value;
+			//	}
+			//}
+			
 		}
 
-		private void ReqursiveApplySortIndex(Dictionary<string, List<string>> tree, DataTable dt, KeyValuePair<string, List<string>> treeItem, string depth, double depthNum)
+		private void ReqursiveApplySortIndex(List<DepthItem> tree, DataTable dt, DepthItem depthItem, string depthAdd, string depth)
 		{
-			foreach(var item in treeItem.Value)
-			{
-				depthNum++;
+			int seq = 0;
 
-				var rows = dt.AsEnumerable().Where(p => p.Field<string>("Name").Equals(item));
+			foreach (var item in depthItem.Items.OrderBy(p => p.Top).ThenBy(p => p.Left))
+			{
+				seq++;
+				var depthStr = depth.JoinPost(".", seq.ToString().PadLeft(2, '0'));
+				var rows = dt.AsEnumerable().Where(p => p.ToStr("Name").Equals(item.Name));
 				foreach (var row in rows)
 				{
-					row["depthAdd"] = depth;
-					//row["depth"] = depthNum;
+					row["depth"] = depthStr;
+					row["depthAdd"] = depthAdd;
 				}
 
-				if (tree.ContainsKey(item))
+				var treeItem = tree.Where(p => p.Name.Equals(item.Name)).FirstOrDefault();
+				if (treeItem != null)
 				{	// 패널요소 입니다.					
-					ReqursiveApplySortIndex(tree, dt, tree.SingleOrDefault(p => p.Key.Equals(item)),						
-						string.Join(".", depth, item), depthNum * 100);
+					ReqursiveApplySortIndex(tree, dt, treeItem, string.Join(".", depthAdd, item.Name), depthStr);
 					continue;
-				}				
+				}
+			}
+
+			//var treeItem = tree.Where(p => p.Name.Equals(treeKey)).FirstOrDefault();
+
+			//foreach (var item in treeItem.Value)
+			//{
+			//	depthNum++;
+
+			//	var rows = dt.AsEnumerable()
+			//		.Where(p => p.ToStr("Name").Equals(item))
+			//		.OrderBy(p => p.Field<int>("Left"))
+			//		.ThenBy(p => p.Field<int>("Top"));
+
+			//	foreach (var row in rows)
+			//	{
+			//		row["depthAdd"] = depth;
+			//		row["depth"] = depthNum;
+			//	}
+
+			//	if (tree.ContainsKey(item))
+			//	{	// 패널요소 입니다.					
+			//		ReqursiveApplySortIndex(tree, dt, tree.SingleOrDefault(p => p.Key.Equals(item)),
+			//			string.Join(".", depth, item), depthNum * 100);
+			//		continue;
+			//	}
+			//}
+		}
+
+		private void FillPropertyList(string code, DataTable dt)
+		{
+			var names = dt.Distinct("Name").AsEnumerable().Select(p => p.ToStr("Name"));
+			
+			//foreach(var name in names)
+			//{
+			//	var regex = string.Format(@"([^\s][^)\n]*{0}[^\n]*\);)", name);
+			//	foreach (var match in Regex.Matches(code, regex))
+			//	{
+			//		var line = match.ToString().Trim();					
+			//		var has = PropertyList.Where(p => p.Line.Equals(line)).FirstOrDefault() != null;
+			//		if (has == true) continue;
+
+			//		var item = new ComponentPropertyInfo()
+			//		{
+			//			Name = name,
+			//			Line = line
+			//		};
+			//		PropertyList.Add(item);
+			//	}
+			//}
+
+			foreach (var name in names)
+			{
+				foreach(var codeline in codeLines.Where(p => p.IndexOf(name) >= 0))
+				{
+					var line = codeline.Trim();
+					var has = PropertyList.Where(p => p.Line.Equals(line)).FirstOrDefault() != null;
+					if (has == true) continue;
+
+					var item = new ComponentPropertyInfo()
+					{
+						Name = name,
+						Line = line
+					};
+					PropertyList.Add(item);
+				}
 			}
 		}
 
@@ -497,7 +652,7 @@ namespace CsFormAnalyzer.Core
 			var row = dt.Select(string.Format("Name = '{0}'", name)).FirstOrDefault();
 			if (row != null)
 			{
-				if (string.IsNullOrEmpty(Convert.ToString(row["대상"])) != true)
+				if (string.IsNullOrEmpty(row.ToStr("대상")) != true)
 				{
 					var newRow = GetNewRow(dt);
 					newRow["type"] = row["type"];
@@ -524,14 +679,84 @@ namespace CsFormAnalyzer.Core
 			{
 				{ // ItemsSource
 					var row = GetTargetRowByName(dt, name);
-					row["대상"] = "ItemsSource";
-					row["바인딩"] = string.Format("{0}ListProperty", GetRemovedPrefixName(name));					
+					row["대상"] = "ItemsSource";					
+					row["바인딩"] = string.Format("{0}ListProperty", GetRemovedPrefixName(name));
+					row["T"] = "P";
+					row["line"] = "generator macro apply";
 				}
 				{ // SelectedItem
 					var row = GetTargetRowByName(dt, name);
 					row["대상"] = "SelectedItem";
 					row["바인딩"] = string.Format("Selected{0}Property", GetRemovedPrefixName(name));
+					row["T"] = "P";
+					row["line"] = "generator macro apply";
 				}
+			}
+
+			if (type.Equals("DateTimePicker"))
+			{
+				var row = GetTargetRowByName(dt, name);
+				row["대상"] = "Date";
+				row["바인딩"] = string.Format("{0}DateProperty", GetRemovedPrefixName(name));
+				row["T"] = "P";
+				row["line"] = "generator macro apply";
+			}
+			else if(type.Equals("NumericUpDown"))
+			{
+				{ // Minimum
+					var row = GetTargetRowByName(dt, name);
+					row["대상"] = "Min";
+					row["target"] = "Minimum";
+					row["값"] = "0";
+					row["T"] = "P";
+					row["line"] = "generator macro apply";
+				}
+				{ // Maximum
+					var row = GetTargetRowByName(dt, name);
+					row["대상"] = "Max";
+					row["target"] = "Maximum";
+					row["값"] = "100";
+					row["T"] = "P";
+					row["line"] = "generator macro apply";
+				}
+				{ // Value
+					var row = GetTargetRowByName(dt, name);
+					row["대상"] = "Value";
+					row["target"] = "Value";
+					row["바인딩"] = string.Format("{0}ValueProperty", GetRemovedPrefixName(name));
+					row["T"] = "P";
+					row["line"] = "generator macro apply";
+				}
+			}
+
+
+			// DataBindingManager 에 의한 기본 프로퍼티 추가
+			if (type.Equals("TextBox") || type.Equals("RichTextBox"))
+			{
+				var row = GetTargetRowByName(dt, name);
+				row["대상"] = "Text";
+				row["target"] = "Text";
+				row["바인딩"] = string.Format("{0}TextProperty", GetRemovedPrefixName(name));
+				row["T"] = "P";
+				row["line"] = "generator macro apply";
+			}
+			else if (type.Equals("CheckBox"))
+			{
+				var row = GetTargetRowByName(dt, name);
+				row["대상"] = "IsChecked";
+				row["target"] = "Checked";
+				row["바인딩"] = string.Format("{0}IsCheckedProperty", GetRemovedPrefixName(name));
+				row["T"] = "P";
+				row["line"] = "generator macro apply";
+			}
+			else if (type.Equals("LMaskEdBox") || type.Equals("LFloatTextBox"))
+			{
+				var row = GetTargetRowByName(dt, name);
+				row["대상"] = "Value";
+				row["target"] = "Value";
+				row["바인딩"] = string.Format("{0}ValueProperty", GetRemovedPrefixName(name));
+				row["T"] = "P";
+				row["line"] = "generator macro apply";
 			}
 		}
 
@@ -574,9 +799,9 @@ namespace CsFormAnalyzer.Core
 			dt.Columns.Add(new DataColumn("top", typeof(int)));
 			dt.Columns.Add(new DataColumn("left", typeof(int)));
 			dt.Columns.Add(new DataColumn("index", typeof(int))); // index
-			dt.Columns.Add(new DataColumn("group", typeof(int)));
-			dt.Columns.Add(new DataColumn("depthAdd", typeof(string)));
-			//dt.Columns.Add(new DataColumn("depth", typeof(double)));			
+			dt.Columns.Add(new DataColumn("sort", typeof(int)));
+			dt.Columns.Add(new DataColumn("depth", typeof(string)));
+			dt.Columns.Add(new DataColumn("depthAdd", typeof(string)));			
 			dt.Columns.Add(new DataColumn("line", typeof(string)));
 
 			return dt;
@@ -585,21 +810,48 @@ namespace CsFormAnalyzer.Core
 		/// <summary>
 		/// 반환형식에 맞게 테이블을 보정하여 가져옵니다.
 		/// </summary>
-		private DataTable GetAmendTable(DataTable dt)
+		private DataTable GetAmendTable(string code, DataTable dt)
 		{
 			if (dt.Rows.Count < 1) return dt;
 
-			var returnTable = dt.Clone();
-
 			var dtRows = dt.AsEnumerable();
-			{	// 대상, 값, 리소스, 바인딩에 모두 해당되지 않는 컨트롤 추출의 경우 제거합니다.
+
+			if (string.IsNullOrEmpty(this.initCode) != true)
+			{	// NumericUpDown의 Minimum, Maximum, Value 는 디자인타임에서 개행되어 표기되므로 보정합니다.				
 				var targetRows = dtRows
-					.Where(p => string.IsNullOrEmpty(p.Field<string>("대상"))
-						&& string.IsNullOrEmpty(p.Field<string>("값"))
-						&& string.IsNullOrEmpty(p.Field<string>("리소스"))
-						&& string.IsNullOrEmpty(p.Field<string>("바인딩"))
-						&& new string[] { "Label" }.Contains(p.Field<string>("type")) // 이 유형의 타입만 제거됩니다.
+					.Where(p => p.ToStr("type").Equals("NumericUpDown")
+						&& p.ToStr("target").Contains("Minimum", "Maximum", "Value")
 					);
+
+				foreach(var row in targetRows)
+				{
+					var startStr = string.Format("this.{0}.{1} = ", row.ToStr("name"), row.ToStr("target"));
+					var line = this.initCode.Between(startStr, ";");
+					if (string.IsNullOrEmpty(line)) continue;
+									
+					var value = Regex.Matches(line, @"[\d]+").Cast<Match>().FirstOrDefault();
+					if (value == null) continue;
+
+					row["값"] = value.ToString();
+				}
+
+			}
+			{	// DateTimePicker 타입의 Text, Value 프로퍼티는 수집목록에서 제거됩니다.
+				var targetRows = dtRows
+					.Where(p => p.ToStr("type").Equals("DateTimePicker")
+						&& p.ToStr("target").Contains("Text", "Value")
+					);
+
+				foreach (var targetRow in targetRows.ToArray())
+				{
+					dt.Rows.Remove(targetRow);
+				}
+			}
+			{	// 속성 SelectedIndex, 값 0 은 목록에서 제거됩니다.
+				var targetRows = dtRows
+					.Where(p => p.ToStr("target").Equals("SelectedIndex")
+						&& (p.IsNull("값") != true && p.ToStr("값").Equals("0"))
+					);				
 
 				foreach (var targetRow in targetRows.ToArray())
 				{
@@ -608,110 +860,117 @@ namespace CsFormAnalyzer.Core
 			}
 			{	// 같은 Name 으로 단일 프로퍼티가 적용된 속성은 바인딩을 제거합니다.
 				var targetRows = dtRows
-					.Where(p => "P".Equals(p.Field<string>("T")))
+					.Where(p => "P".Equals(p.ToStr("T")))
 					.GroupBy(item => new { Name = item.Field<string>("Name"), Target = item.Field<string>("대상") })
 					.Select(group => new { Name = group.Key.Name, Target = group.Key.Target, Count = group.Count() });
 
 				// 속성 설정이 1개 행일 경우 바인딩 대상이 아니므로 바인딩을 제거합니다.
 				foreach (var targetRow in targetRows.Where(p => p.Count < 2))
 				{
-					var rows = dtRows.Where(p => p.Field<string>("Name").Equals(targetRow.Name)
-						&& p.Field<string>("대상").Equals(targetRow.Target)
+					var rows = dtRows.Where(p => p.ToStr("Name").Equals(targetRow.Name)
+						&& p.ToStr("대상").Equals(targetRow.Target)
 						//&& p.Field<bool>("IsInit")
 						);
 
 					foreach (var row in rows)
 					{
-						row["바인딩"] = null;
+						if (IsInit(code, row.ToStr("line")))
+							row["바인딩"] = null;
 					}
 				}
 
 				// 속성 설정이 2개 이상일 경우 한개행만 남겨두고 모두 제거합니다.
 				foreach (var targetRow in targetRows.Where(p => p.Count > 1).ToArray())
 				{
-					var rows = dtRows.Where(p => p.Field<string>("Name").Equals(targetRow.Name)
-						&& p.Field<string>("대상").Equals(targetRow.Target)
-						&& string.IsNullOrEmpty(p.Field<string>("check"))
+					var rows = dtRows.Where(p => p.ToStr("Name").Equals(targetRow.Name)
+						&& p.ToStr("대상").Equals(targetRow.Target)
+						&& string.IsNullOrEmpty(p.ToStr("check"))
 						);						//&& p.Field<bool>("IsInit") != true
 
-					var firstRow = rows.FirstOrDefault();
-
+					var skipRow = rows.LastOrDefault();
 					foreach (var row in rows.ToArray())
 					{
-						if (row.Equals(firstRow)) continue;
+						if (row.Equals(skipRow)) continue;
 						dt.Rows.Remove(row);
-					}	
+					}
 				}
 			}
 			{	// FpSpread 의 Text속성을 마킹 하고 제거합니다.
 				var targetRows = dtRows
-					.Where(p => "Text".Equals(p.Field<string>("대상"))
-						&& "FpSpread".Equals(p.Field<string>("type")));
+					.Where(p => "Text".Equals(p.ToStr("대상"))
+						&& "FpSpread".Equals(p.ToStr("type")));
 
 				foreach (var targetRow in targetRows.ToArray())
 				{
-					//WriteCheckLine(Convert.ToString(targetRow["line"]));
+					WriteCheckLine(targetRow.ToStr("line"));
 					dt.Rows.Remove(targetRow);
-				}
-			}
-			{	// TabIndex가 부여되지 않은 로우의 TabIndex를 최하위로 부여합니다.
-				foreach (var row in dtRows.Where(p => p.IsNull("index")))
-				{
-					row["index"] = 9999;
 				}
 			}
 			{	// SheetView 타입을 마킹 하고 제거합니다.
 				var targetRows = dtRows
-					.Where(p => "SheetView".Equals(p.Field<string>("type")));
+					.Where(p => "SheetView".Equals(p.ToStr("type")));
 
 				foreach (var targetRow in targetRows.ToArray())
 				{
-					//WriteCheckLine(Convert.ToString(targetRow["line"]));
+					WriteCheckLine(targetRow.ToStr("line"));
 					dt.Rows.Remove(targetRow);
 				}
 			}
-			{	// TabIndex가 부여되지 않은 로우의 TabIndex를 최하위로 부여합니다.
-				foreach (var row in dtRows.Where(p => p.IsNull("index")))
+			{	// Sheets를 엑세스 하는 라인을 마킹 하고 제거합니다.
+				var targetRows = dtRows
+					.Where(p => string.IsNullOrEmpty(p.ToStr("line")) != true
+						&& (p.ToStr("line").IndexOf("ActiveSheet") > 0 || p.ToStr("line").IndexOf("Sheets") > 0));
+
+				foreach (var targetRow in targetRows.ToArray())
 				{
-					row["index"] = 9999;
+					WriteCheckLine(targetRow.ToStr("line"));
+					dt.Rows.Remove(targetRow);
 				}
 			}
-			//{	// Depth가 부여되지 않은 로우의 Depth를 최하위로 부여합니다.
-			//	foreach (var row in dtRows.Where(p => p.IsNull("depth")))
-			//	{
-			//		//row["depth"] = double.MaxValue;
-			//		row["depth"] = 9999999;
-			//	}
-			//}
 
-			var orderedRows = dt.Select(null, "depthAdd, top, left, index");
-			if (orderedRows.Count() > 0)
-				returnTable = orderedRows.CopyToDataTable();
-			else
-				returnTable = dt;
+			foreach(var row in dt.AsEnumerable())
+			{
+				if (row.ToStr("대상").Contains("Content", "Header", "Text"))
+					row["sort"] = 1;
+				else
+					row["sort"] = 99;
+			}
 
-			return returnTable;
+
+			dt.DefaultView.Sort = "depth, top, left, index, sort, 대상";
+			string name = null;
+			foreach (DataRowView rowView in dt.DefaultView)
+			{
+				var row = rowView.Row;
+				if (row.ToStr("name").Equals(name))
+					row["컨트롤명"] = null;
+				else
+					name = row.ToStr("name");
+			}
+
+			return dt;
 		}
 
-		//private void WriteCheckLine(string line)
-		//{
-		//	if (string.IsNullOrEmpty(line)) return;
+		private void WriteCheckLine(string line)
+		{
+			if (string.IsNullOrEmpty(line)) return;
 
-		//	if (string.IsNullOrEmpty(line) != true)
-		//	{
-		//		var lineNum = Array.FindIndex<string>(codeLines, p => p.IndexOf(line) >= 0);
-		//		CheckLines.Add(string.Format("{0} - {1}", lineNum, line));
-		//	}
-		//}
+			if (string.IsNullOrEmpty(line) != true)
+			{
+				//var lineNum = Array.FindIndex<string>(codeLines, p => p.IndexOf(line) >= 0);
+				//CheckLines.Add(string.Format("{0} - {1}", lineNum, line));
+				CheckLines.Add(new CheckLineItem() { Line = line });
+			}
+		}
 
-		///// <summary>
-		///// 이 코드라인이 InitializeComponent() 함수 내에 위치한 코드일 경우 True
-		///// </summary>
-		//private bool IsInit(string code, string line)
-		//{
-		//	var index = code.IndexOf(line);
-		//	return index > initIndexStart && index < initIndexEnd;
-		//}
+		/// <summary>
+		/// 이 코드라인이 InitializeComponent() 함수 내에 위치한 코드일 경우 True
+		/// </summary>
+		private bool IsInit(string code, string line)
+		{
+			var index = code.IndexOf(line);
+			return index > initIndexStart && index < initIndexEnd;
+		}
 
 		/// <summary>
 		/// 프로퍼티이름으로 매핑되는 컨트롤명을 가져옵니다.
@@ -740,7 +999,8 @@ namespace CsFormAnalyzer.Core
 			dic.Add("DateTimePicker", "DateTime");
 			dic.Add("TabPage", "TabItem");
 			dic.Add("CodeCombo", "ComboBox");
-			dic.Add("Container", "FrameCtrl");
+			dic.Add("FrameCtrl", "Container");
+			dic.Add("CrystalReportViewer", "OzViewer");			
 
 			return dic;
 		}
@@ -763,8 +1023,7 @@ namespace CsFormAnalyzer.Core
 			return propertyName;
 		}
 
-		private Dictionary<string, Dictionary<string, string>> mappingPropertyDictionary;		
-
+		private Dictionary<string, Dictionary<string, string>> mappingPropertyDictionary;
 		private Dictionary<string, Dictionary<string, string>> GetMappingPropertyDictionary()
 		{
 			var dic = new Dictionary<string, Dictionary<string, string>>();
@@ -803,9 +1062,9 @@ namespace CsFormAnalyzer.Core
 				list.Add("DisplayMember", "Content");
 				dic.Add("ListBoxItem", list);
 			}
-			{	// DatePicker
+			{	// DateTimePicker
 				var list = new Dictionary<string, string>();
-				list.Add("Value", "Date");
+				// Value, Text 는 수집 대상이 아니며, DateTimePicker는 Date가 기본적으로 바인딩요소로 추가되어 있다.
 				dic.Add("DateTimePicker", list);
 			}
 			{	// GroupBox
@@ -829,6 +1088,12 @@ namespace CsFormAnalyzer.Core
 				list.Add("Text", "Content");
 				dic.Add("ToggleButton", list);
 			}
+			{	// NumericUpDown
+				var list = new Dictionary<string, string>();
+				list.Add("Minimum", "Min");
+				list.Add("Maximum", "Max");
+				dic.Add("NumericUpDown", list);
+			}
 
 			return dic;
 		}		
@@ -840,5 +1105,23 @@ namespace CsFormAnalyzer.Core
 		public string Target { get; set; }
 		public string Value { get; set; }
 		public string Line { get; set; }
+	}
+
+	public class CheckLineItem
+	{
+		public string Line { get; set; }
+	}
+
+	public class DepthItem
+	{
+		public string Name { get; set; }
+		public int Left { get; set; }
+		public int Top { get; set; }
+		public List<DepthItem> Items { get; set; }
+
+		public DepthItem()
+		{
+			this.Items = new List<DepthItem>();
+		}
 	}
 }

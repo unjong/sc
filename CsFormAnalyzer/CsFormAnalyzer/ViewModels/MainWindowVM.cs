@@ -13,8 +13,7 @@ namespace CsFormAnalyzer.ViewModels
 	{
 		public MainWindowVM()
 		{
-			RunCommand = base.CreateAsyncCommand(OnRunCommand);
-			((AsyncCommand)RunCommand).IsBusyChanged += (s, isBusy) => { base.IsShowProgressRing = isBusy; };
+			RunCommand = base.CreateCommand(OnRunCommand);
 			CopyToClipboardCommand = base.CreateCommand(OnCopyToClipboardCommand);
 			CloseCommand = base.CreateCommand(() => { Application.Current.Shutdown(); });
 
@@ -43,17 +42,15 @@ namespace CsFormAnalyzer.ViewModels
 			}
 		}
 
-		private Task OnRunCommand()
+		private void OnRunCommand()
 		{
 			AppManager.Current.Settings.Set("TargetFile", this.TargetFile);
-
-			var task = Task.Factory.StartNew(() =>
-				{					
-					ViewModelLocator.Current.ComponentAnalysisVM.Run();
-					ViewModelLocator.Current.DataColumnAnalysisVM.Run();
-				});
-
-			return task;
+			
+			base.InvokeAsyncAction(delegate
+			{
+				ViewModelLocator.Current.ComponentAnalysisVM.Run();
+				ViewModelLocator.Current.DataColumnAnalysisVM.Run();
+			});
 		}
 
 		private void OnCopyToClipboardCommand()

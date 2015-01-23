@@ -50,7 +50,11 @@ namespace CsFormAnalyzer.ViewModels
 				OnPropertyChanged();
 
 				var drv = value as DataRowView;
-				this.FilteredPropertyList = this.PropertyList.Where(p => p.Name.Equals(Convert.ToString(drv.Row["name"]))).Cast<ComponentPropertyInfo>();
+				if (drv == null) return;
+
+				this.FilteredPropertyList = this.PropertyList
+					.Where(p => string.IsNullOrEmpty(Convert.ToString(drv.Row["name"])) != true 
+						&& p.Name.Equals(Convert.ToString(drv.Row["name"]))).Cast<ComponentPropertyInfo>();
 				this.SelectedPropertyListItem = this.FilteredPropertyList.Where(p => p.Line == Convert.ToString(drv.Row["line"])).FirstOrDefault();
 			} 
 		}

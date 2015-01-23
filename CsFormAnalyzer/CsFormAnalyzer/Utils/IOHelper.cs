@@ -9,7 +9,7 @@ namespace CsFormAnalyzer.Utils
 {
 	public class IOHelper
 	{
-		public static string ReadFile(string path)
+		public static string ReadFileToString(string path)
 		{
 			var sb = new StringBuilder();
 			using (var sr = new StreamReader(path, Encoding.Default, true))
