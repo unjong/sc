@@ -1,0 +1,57 @@
+﻿<UserControl x:Class="CsFormAnalyzer.Views.SaveTobeInfoView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:l="clr-namespace:CsFormAnalyzer.ViewModels"
+             mc:Ignorable="d" 
+             d:DataContext="{d:DesignInstance Type=l:SaveTobeInfoVM, IsDesignTimeCreatable=True}"
+             d:DesignHeight="300" d:DesignWidth="300" Margin="10">
+    <Grid>
+        <DockPanel>
+            <TextBlock Text="|| ToBe 로 생성된 각 클래스 정보를 기록합니다." DockPanel.Dock="Top" Margin="5,5" />
+            <DockPanel DockPanel.Dock="Top" Height="30" >
+                <TextBlock Text="Location :" Width="100" VerticalAlignment="Center"/>
+                <TextBox Text="{Binding Path=Location}" Margin="0,2" />
+            </DockPanel>
+            <DockPanel DockPanel.Dock="Top" Height="30" >
+                <TextBlock Text="RequestName :" Width="100" VerticalAlignment="Center"/>
+                <TextBox Text="{Binding Path=RequestName}" Margin="0,2" />
+            </DockPanel>
+            <DockPanel DockPanel.Dock="Top" Height="30">
+                <TextBlock Text="ResponseName :" Width="100" VerticalAlignment="Center"/>
+                <TextBox Text="{Binding Path=ResponseName,FallbackValue=asdlf}" VerticalAlignment="Center"/>
+            </DockPanel>
+            <DockPanel DockPanel.Dock="Top" Height="30">
+                <TextBlock Text="ServiceName :" Width="100" VerticalAlignment="Center"/>
+                <TextBox Text="{Binding Path=ServiceName,FallbackValue=asdlf}" Margin="0,2"/>
+            </DockPanel>
+            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="5,5">
+                <Button Content="확인" Command="{Binding Path=ScmdClose}"/>
+            </StackPanel>
+            <StackPanel DockPanel.Dock="Top" VerticalAlignment="Center" Margin="2,2" Orientation="Horizontal">
+                <TextBlock Text="SP [ "/><TextBlock Text="{Binding SPName}" /><TextBlock Text=" ] 에서 생성되는 모델이름" />
+            </StackPanel>
+            <ListBox ItemsSource="{Binding Path=ModelNameList}" HorizontalContentAlignment="Stretch" >
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid HorizontalAlignment="Stretch">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="100" />
+                                <ColumnDefinition />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="ModelName :" Width="100"/>
+                            <!--<Image Source="/CsFormAnalyzer;component/lib/images/icon_check.png" Width="25" Height="25"
+                                   Visibility="{Binding Path=RequestPropertyList,Converter={StaticResource visibleConverter}}"/>-->
+                            <!--<ComboBox HorizontalContentAlignment="Stretch" DisplayMemberPath="Key" SelectedValuePath="Value"  
+                                  SelectedValue="{Binding Path=DBName}"  DockPanel.Dock="Left"
+                                      ItemsSource="{Binding ElementName=grdRoot,Path=DataContext.DBConnectionList}"/>-->
+                            <!--<CheckBox IsChecked="{Binding Path=IsSaveSP}" DockPanel.Dock="Right" />-->
+                            <TextBox Text="{Binding Path=ModelName}" Grid.Column="1"/>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </DockPanel>
+    </Grid>
+</UserControl>

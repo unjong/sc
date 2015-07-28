@@ -1,0 +1,18 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:f="clr-namespace:CsFormAnalyzer.Foundation"
+                    >
+
+    <f:AutoTemplateSelector x:Key="AutoTemplateSelector" />
+    
+    <ResourceDictionary.MergedDictionaries>        
+        <ResourceDictionary Source="Assets.xaml" />
+        <ResourceDictionary Source="Converters.xaml" />
+        <ResourceDictionary Source="DefaultStyle.xaml" />
+        <ResourceDictionary Source="KeyStyles.xaml" />
+        <ResourceDictionary Source="FontsForTextBlock.xaml" />
+        <ResourceDictionary Source="Layouts.xaml" />
+
+        <ResourceDictionary Source="AutoDataTemplates.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+</ResourceDictionary>

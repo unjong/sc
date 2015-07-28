@@ -1,0 +1,117 @@
+﻿<UserControl x:Class="CsFormAnalyzer.Views.HasRequstView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+             xmlns:ei="http://schemas.microsoft.com/expression/2010/interactions"
+             xmlns:l="clr-namespace:CsFormAnalyzer.ViewModels"
+             xmlns:controls="clr-namespace:CsFormAnalyzer.Controls"
+             d:DataContext="{d:DesignInstance Type=l:HasRequestInfoVM}"
+             mc:Ignorable="d"
+             d:DesignHeight="277" d:DesignWidth="671">
+    <Grid Name="grd">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="103*"/>
+            <RowDefinition Height="47*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="12*"/>
+            <ColumnDefinition Width="13*"/>
+        </Grid.ColumnDefinitions>
+        <Grid Margin="5" >
+            <Grid.RowDefinitions>
+                <RowDefinition Height="25"/>
+                <RowDefinition Height="88*"/>
+            </Grid.RowDefinitions>
+            <DockPanel Background="Beige" >
+                <TextBlock Text="※ Facade 기준으로 이미 만들어진 Request정보" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+            </DockPanel>
+            <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Row="1" HorizontalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding Path=FacadeReqInfoModelList}" Background="#FFFFE6E6">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border BorderBrush="Black" BorderThickness="1" Grid.Row="1" >
+                                <StackPanel >
+                                    <Button Content="코드보기" HorizontalAlignment="Right" Command="{Binding ElementName=grd,Path=DataContext.ScmdShowReqCode}"
+                                        CommandParameter="{Binding}"/>
+                                    <DockPanel >
+                                        <TextBlock Text="ModelName: " Width="100" TextAlignment="Right" VerticalAlignment="Center" Margin="0,0,3,0"/>
+                                        <TextBox Text="{Binding Path=ModelNameList[0]}" Grid.Row="1"/>
+                                    </DockPanel>
+                                    <DockPanel >
+                                        <TextBlock Text="RequestName: " Width="100" TextAlignment="Right" VerticalAlignment="Center" Margin="0,0,3,0"/>
+                                        <TextBox Text="{Binding Path=RequestName}" Grid.Row="1"/>
+                                    </DockPanel>
+                                    <DockPanel >
+                                        <TextBlock Text="ResponseName: " Width="100" TextAlignment="Right" VerticalAlignment="Center" Margin="0,0,3,0"/>
+                                        <TextBox Text="{Binding Path=ResponseName}" Grid.Row="1"/>
+                                    </DockPanel>
+                                    <DockPanel >
+                                        <TextBlock Text="Location: " Width="100" TextAlignment="Right" VerticalAlignment="Center" Margin="0,0,3,0"/>
+                                        <TextBox Text="{Binding Path=ID}" Grid.Row="1"/>
+                                    </DockPanel>
+                                    <DockPanel >
+                                        <TextBlock Text="작성자: " Width="100" TextAlignment="Right" VerticalAlignment="Center" Margin="0,0,3,0"/>
+                                        <TextBox Text="{Binding Path=UserName}" Grid.Row="1"/>
+                                    </DockPanel>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <!--<TextBox Text="{Binding Path=FacadeLocationMessage}" Grid.Row="1"/>-->
+        </Grid>
+        <GridSplitter Width="3" Margin="-2,0" Background="Gray"/>
+        <Grid Margin="5" Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="25"/>
+                <RowDefinition Height="88*"/>
+            </Grid.RowDefinitions>
+            <DockPanel Background="Beige" >
+                <TextBlock Text="※ SP 기준으로 이미만들어진 Request정보" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+            </DockPanel>
+            <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Row="1" HorizontalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding Path=SPReqInfoModelList}" Grid.Row="1" Background="#FFF3FFFF" >
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border BorderBrush="Black" BorderThickness="1" Grid.Row="1" >
+                                <StackPanel >
+                                    <Button Content="코드보기" HorizontalAlignment="Right" Command="{Binding ElementName=grd,Path=DataContext.ScmdShowReqCode}"
+                                        CommandParameter="{Binding Path=ReqInfoModelList}"/>
+                                    <DockPanel Background="Black" >
+                                        <TextBlock Text="FacadeInfo: " Width="100" TextAlignment="Right" VerticalAlignment="Center" Foreground="White" />
+                                        <TextBlock Text="{Binding Path=FacadeLocation}" Grid.Row="1" Foreground="White" />
+                                    </DockPanel>
+                                    <controls:ScDataGrid Grid.Row="1" Grid.Column="2" x:Name="dgCallTree" AutoGenerateColumns="False"
+                                                 ItemsSource="{Binding Path=ReqInfoModelList}" >
+                                        <i:Interaction.Triggers>
+                                            <i:EventTrigger EventName="RowDoubleClick" >
+                                                <i:InvokeCommandAction Command="{Binding ScmdOpenView}" CommandParameter="{Binding}"/>
+                                            </i:EventTrigger>
+                                        </i:Interaction.Triggers>
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="Request" Binding="{Binding RequestName, Mode=OneTime}" IsReadOnly="True" />
+                                            <DataGridTextColumn Header="SPName" Binding="{Binding SPName, Mode=OneTime}" IsReadOnly="True" />
+                                            <DataGridTextColumn Header="Model" Binding="{Binding ModelName, Mode=OneTime}" IsReadOnly="True" />
+                                        </DataGrid.Columns>
+                                    </controls:ScDataGrid>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Grid>
+        <DockPanel Grid.Row="1" Grid.ColumnSpan="2" Margin="2">
+            <TextBlock Text="Request 코드 (복사해서 사용)" DockPanel.Dock="Top" />
+            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,5,0,0">
+                <Button Content="새로만들겠습니다." Margin="5,0" Click="Button_Click" />
+                <Button Content="사용하겠습니다." Click="Button_Click_1" />
+            </StackPanel>
+            <TextBox Text="{Binding Path=RequestCode}" HorizontalScrollBarVisibility="Auto"  VerticalScrollBarVisibility="Auto"/>
+        </DockPanel>
+    </Grid>
+</UserControl>

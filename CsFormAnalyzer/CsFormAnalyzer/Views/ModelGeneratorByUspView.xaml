@@ -1,0 +1,141 @@
+﻿<UserControl x:Class="CsFormAnalyzer.Views.ModelGeneratorByUspView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:bh="clr-namespace:CsFormAnalyzer.Behaviours"
+             xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"             
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300"
+             Background="White"
+             >
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/CsFormAnalyzer;component/ResourceDictionaries/Linker.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Style="{StaticResource Grid.Header}">
+            <TextBlock Style="{StaticResource Title}" Text="Code Generator By USP" />
+        </Grid>
+
+        <Grid Grid.Row="1" Style="{StaticResource Grid.Body}">
+            <TabControl Padding="0" SelectedIndex="{Binding Step}" BorderBrush="Transparent">
+                <TabItem Style="{StaticResource ChromelessTabItem}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" MinWidth="80" />
+                            <ColumnDefinition Width="4" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="4" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="4" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="4" />
+                            <RowDefinition Height="Auto" />                            
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="DB Name :" HorizontalAlignment="Right" VerticalAlignment="Center" />                        
+                        <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal" >
+                            <ComboBox ItemsSource="{Binding DbNames}" SelectedItem="{Binding DbName}" MinWidth="100" HorizontalAlignment="Left" />
+                            <TextBlock Text="(USP 입력시 자동으로 선택)" Foreground="Red" Margin="4,0" VerticalAlignment="Center" />
+                        </StackPanel>
+                        
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Request Name :" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                        <TextBox Grid.Row="2" Grid.Column="2" Text="{Binding BaseName, StringFormat='\{0\}Request'}" />
+
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="USP Name :" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                        <TextBox Grid.Row="4" Grid.Column="2" Text="{Binding UspName}" />
+
+                        <CheckBox Grid.Row="6" Grid.Column="2" Content="IsCUD(Insert, Update, Delete)" IsChecked="{Binding IsSaveUsp}" />
+                    </Grid>
+                </TabItem>
+                <TabItem Style="{StaticResource ChromelessTabItem}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="5*" />
+                            <ColumnDefinition Width="4" />
+                            <ColumnDefinition Width="5*" />
+                        </Grid.ColumnDefinitions>
+
+                        <DataGrid Grid.Column="0" ItemsSource="{Binding CurrentSpInfo.SPParamsDT}" />
+
+                        <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" bh:StateRestoreBehavior.GridSplitter="D58F2EE9-A8F4-4BF7-B004-CF256542F563" />
+
+                        <DockPanel Grid.Column="2">
+                            <CheckBox DockPanel.Dock="Bottom" Content="IsCUD(Insert, Update, Delete)" IsChecked="{Binding IsSaveUsp}" />
+                            
+                            <avalonEdit:TextEditor DockPanel.Dock="Top"
+                                           FontFamily="Consolas" FontSize="10pt" ShowLineNumbers="True" SyntaxHighlighting="C#"
+                                           bh:BindAssist.Attach="True" bh:BindAssist.Bind="{Binding CurrentSpInfo.SPCodeText}"
+                                           bh:BindAssist.SelectedText="{Binding ExecuteSpCode}" />
+                        </DockPanel>
+                    </Grid>
+                </TabItem>
+                <TabItem Style="{StaticResource ChromelessTabItem}">
+                    <ItemsControl ItemsSource="{Binding ResultSpItems}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Columns="1" Rows="{Binding ResultSpItems.Count}" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="*" />
+                                    </Grid.RowDefinitions>
+                                    <StackPanel Grid.Row="0" Orientation="Horizontal">
+                                        <TextBlock Text="ModelName :" VerticalAlignment="Center" />
+                                        <TextBox Text="{Binding ModelName}" MinWidth="120" Margin="4,0" />
+                                    </StackPanel>
+                                    <DataGrid Grid.Row="1" ItemsSource="{Binding Table}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </TabItem>
+                <TabItem Style="{StaticResource ChromelessTabItem}">
+                    <TabControl>
+                        <!--
+                        <TabItem Header="Model">
+                            <avalonEdit:TextEditor FontFamily="Consolas" FontSize="10pt" ShowLineNumbers="True" SyntaxHighlighting="C#"
+                                               bh:BindAssist.Attach="True" bh:BindAssist.Bind="{Binding ModelCode}" />
+                        </TabItem>
+                        -->
+                        <TabItem Header="Request &amp; Response &amp; Model">
+                            <avalonEdit:TextEditor FontFamily="Consolas" FontSize="10pt" ShowLineNumbers="True" SyntaxHighlighting="C#"
+                                               bh:BindAssist.Attach="True" bh:BindAssist.Bind="{Binding RequestCode}" />
+                        </TabItem>
+                        <TabItem Header="Service">
+                            <avalonEdit:TextEditor FontFamily="Consolas" FontSize="10pt" ShowLineNumbers="True" SyntaxHighlighting="C#"
+                                               bh:BindAssist.Attach="True" bh:BindAssist.Bind="{Binding ServiceCode}" />
+                        </TabItem>
+                    </TabControl>
+                </TabItem>
+            </TabControl>
+        </Grid>
+
+        <Grid Grid.Row="2" Style="{StaticResource Grid.Footer}">
+            <StackPanel Grid.Row="1" Margin="0,4" Orientation="Horizontal" HorizontalAlignment="Right"  Height="26">
+                <Button Command="{Binding PreviousCommand}" Content="Previous" Margin="4,0,0,0"/>
+                <Button Command="{Binding NextCommand}" Content="Next" Margin="4,0,0,0" />
+                <Button Command="{Binding OkCommand}" Content="OK" Margin="4,0,0,0" />
+                <Button Command="{Binding CancelCommand}" Content="Cancel" Margin="4,0,0,0" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

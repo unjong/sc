@@ -1,0 +1,62 @@
+﻿<UserControl x:Class="CsFormAnalyzer.Views.CodeGenViewModelView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:c="clr-namespace:CsFormAnalyzer.Controls"
+             xmlns:bh="clr-namespace:CsFormAnalyzer.Behaviours"             
+             xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300"
+             Background="White"
+             DataContext="{Binding Source={StaticResource ViewModelLocator}, Path=CodeGenViewModelVM}"
+             bh:MvvmBehavior.View="True"
+             >
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <TabControl Grid.Row="0" Padding="0" SelectedIndex="{Binding Step}">
+            <TabItem Style="{StaticResource ChromelessTabItem}">
+                <DockPanel>
+                    <Grid DockPanel.Dock="Top">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="4" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="ViewModel Name :" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                        <TextBox Grid.Row="0" Grid.Column="2" Text="{Binding ViewModelInfo.Name, StringFormat='\{0\}ViewModel'}" />
+                    </Grid>
+                    <c:ScDataGrid ItemsSource="{Binding VmItemInfoList}" SelectionUnit="Cell" CanUserSortColumns="False" Margin="0,4,0,0" />
+                </DockPanel>                        
+            </TabItem>
+            <TabItem Style="{StaticResource ChromelessTabItem}">
+                <TabControl>
+                    <TabItem Header="ViewModel Code">
+                        <Grid>
+                            <avalonEdit:TextEditor bh:BindAssist.Bind="{Binding ViewModelCode}" 
+                                                   FontFamily="Consolas" FontSize="10pt" ShowLineNumbers="True" SyntaxHighlighting="C#" />
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,0,3">
+                                <TextBlock Margin="4,0">
+                                    <Hyperlink Command="{Binding OpenModelGeneratorCommand}">Open ModelGenerator</Hyperlink>
+                                </TextBlock>
+                                <TextBlock Margin="4,0">
+                                    <Hyperlink Command="{Binding OpenCodeConverterCommand}">Open CodeConverter</Hyperlink>
+                                </TextBlock>
+                            </StackPanel>
+                        </Grid>
+                    </TabItem>
+                </TabControl>
+            </TabItem>
+        </TabControl>
+        <StackPanel Grid.Row="1" Margin="0,4" Orientation="Horizontal" HorizontalAlignment="Left"  Height="26">
+            <Button Command="{Binding ClearCommand}" Content="Clear" />
+        </StackPanel>        
+        <StackPanel Grid.Row="1" Margin="0,4" Orientation="Horizontal" HorizontalAlignment="Right"  Height="26">
+            <Button Command="{Binding PreviousCommand}" Content="Previous" Margin="4,0,0,0"/>
+            <Button Command="{Binding NextCommand}" Content="Next" Margin="4,0,0,0" />
+        </StackPanel>
+    </Grid>
+</UserControl>

@@ -1,0 +1,43 @@
+﻿<UserControl x:Class="CsFormAnalyzer.Views.FacadeGenView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:controls="clr-namespace:CsFormAnalyzer.Controls"
+             xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+             xmlns:v="clr-namespace:CsFormAnalyzer.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="431" d:DesignWidth="786">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="3*"/>
+            <RowDefinition Height="4"/>
+            <RowDefinition Height="7*"/>
+        </Grid.RowDefinitions>
+        <controls:ScDataGrid x:Name="dgCallTree" AutoGenerateColumns="False"
+                                                 ItemsSource="{Binding FacadeListDT}" 
+                                                 SelectedItem="{Binding SelectedRow}">
+            <i:Interaction.Triggers>
+                <i:EventTrigger EventName="RowDoubleClick" >
+                    <i:InvokeCommandAction Command="{Binding ScmdOpenView}" />
+                </i:EventTrigger>
+            </i:Interaction.Triggers>
+            <DataGrid.Columns>
+                <!--
+                                    <DataGridTemplateColumn Header="Code Gen" Width="SizeToCells" IsReadOnly="True">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Button Content="Gen" Command="{Binding ElementName=gridRoot, Path=DataContext.ScmdOpenView}"
+                                                        CommandParameter="{Binding RelativeSource={RelativeSource AncestorType={x:Type Window}}}"/>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                    -->
+                <DataGridTextColumn Header="NameSpace" Binding="{Binding NAMESPACE, Mode=OneTime}" IsReadOnly="True" />
+                <DataGridTextColumn Header="Facade" Binding="{Binding CLASSNM, Mode=OneTime}" IsReadOnly="True" />
+                <!--<DataGridTextColumn Header="SP" Binding="{Binding SP, Mode=OneTime}" IsReadOnly="True" />-->
+            </DataGrid.Columns>
+        </controls:ScDataGrid>
+        <v:CodeGen_Model_ServiceView  Grid.Row="2" DataContext="{Binding Path=CodeGenModelVM}"/>
+    </Grid>
+</UserControl>

@@ -1,0 +1,45 @@
+﻿<Window x:Class="CsFormAnalyzer.Views.BizCallTreeAnalysisView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"    
+        xmlns:bh="clr-namespace:CsFormAnalyzer.Behaviours" bh:MvvmBehavior.View="True"
+        Title="BizDataParsingView" Height="531.343" Width="734.328"        
+        >
+    <Grid>        
+        <DockPanel>
+            <TextBlock Text="Facade-Biz-DA Call Tree Analysis"  DockPanel.Dock="Top"  Margin="5,10" FontSize="14"/>
+            <DockPanel DockPanel.Dock="Top" Height="25">
+                <Label Content="Dir or File:" Width="80" VerticalAlignment="Center" Margin="10,0" HorizontalContentAlignment="Right"/>
+                <Button Command="{Binding ScmdStartParasing}" DockPanel.Dock="Right" Content="Parase" Padding="15,0" Margin="5,0,0,0"/>
+                <TextBox Text="{Binding Path=CallTreeAnalysisDirectory}" />
+            </DockPanel>
+            <DockPanel DockPanel.Dock="Top" Height="28">
+                <Label Content="Ignore type :" VerticalAlignment="Center" Width="80" Margin="10,0"  HorizontalContentAlignment="Right"/>
+                <TextBox Text="{Binding Path=IgnoreObjNames}" Margin="0,2,0,5" />
+            </DockPanel>
+            <DockPanel DockPanel.Dock="Top" Height="28">
+                <Label Content="Static Controller and Facade :" VerticalAlignment="Center" Margin="10,0"  HorizontalContentAlignment="Right"/>
+                <TextBox Text="{Binding Path=Statics}" Margin="0,2,0,5" TextWrapping="Wrap" />
+            </DockPanel>
+            <!--<StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Stretch">
+                <Button Content="Ok Insert to DataBase"  HorizontalAlignment="Left" 
+            	    Padding="10,5" Margin="0,10,-34,10" Background="#FF33B4DA" Foreground="White" Command="{Binding ScmdInsertDatabase}"/>
+               
+            </StackPanel>-->
+            <Grid DockPanel.Dock="Bottom">
+                <StackPanel HorizontalAlignment="Left" Orientation="Horizontal" Margin="10">
+                    <Button Command="{Binding ScmdUpdateParameter}" Content="Update ParameterCounter" Padding="10,5" />
+                    <Button Command="{Binding SCmdUpdateDBName}" Content="Update DBName" Padding="10,5" Margin="4,0,0,0" />
+                </StackPanel>
+
+                <Button Content="Ok Insert to DataBase" HorizontalAlignment="Right"  DockPanel.Dock="Bottom"
+                        Padding="10,5" Margin="10" Background="#FF33B4DA" Foreground="White" Command="{Binding ScmdInsertDatabase}"/>
+            </Grid>
+            <!--<TextBox Text="{Binding Path=ParsingProcessingInfo}" Margin="0,10,0,0" ScrollViewer.VerticalScrollBarVisibility="Auto" 
+                     ScrollViewer.HorizontalScrollBarVisibility="Visible" TextChanged="TextBox_TextChanged" />-->
+            <ProgressBar DockPanel.Dock="Bottom" Height="14" Maximum="{Binding DirTotal}" Value="{Binding DirCurrent}" />
+            <ProgressBar DockPanel.Dock="Bottom" Height="14" Maximum="{Binding FileTotal}" Value="{Binding FileCurrent}" />
+            <DataGrid ItemsSource="{Binding CallTreeDataList}" Margin="0,4,0,0" Loaded="DataGrid_Loaded"
+                      ColumnWidth="400"/>
+        </DockPanel>
+    </Grid>
+</Window>

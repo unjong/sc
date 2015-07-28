@@ -1,0 +1,9 @@
+﻿<Window x:Class="CsFormAnalyzer.Controls.SCPopWinBase"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:sc="clr-namespace:CsFormAnalyzer.Controls"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="SCPopWinBase" Height="300" Width="300" 
+        >
+    <Grid x:Name="layoutRootGrid">
+    </Grid>
+</Window>

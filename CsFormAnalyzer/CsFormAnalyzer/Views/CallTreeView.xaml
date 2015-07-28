@@ -1,0 +1,91 @@
+﻿<UserControl x:Class="CsFormAnalyzer.Views.CallTreeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:c="clr-namespace:CsFormAnalyzer.Converters"
+             xmlns:bh="clr-namespace:CsFormAnalyzer.Behaviours"
+             xmlns:v="clr-namespace:CsFormAnalyzer.Views"
+             xmlns:vm="clr-namespace:CsFormAnalyzer.ViewModels"             
+             mc:Ignorable="d" 
+             d:DesignHeight="300.4" d:DesignWidth="814"
+             DataContext="{Binding Source={StaticResource ViewModelLocator}, Path=CallTreeVM}"
+             bh:MvvmBehavior.View="True"
+             Background="White"
+             >
+    <Grid x:Name="gridRoot">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0">
+            <Button Content="◀ Anaysis"  HorizontalAlignment="Right" Click="Button_Click" VerticalAlignment="Top" Padding="10,0">
+                <Button.Background>
+                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                        <GradientStop Color="#FF40B3DE" Offset="0.788"/>
+                        <GradientStop Color="#FFB2FFFB" Offset="0.275"/>
+                    </LinearGradientBrush>
+                </Button.Background>
+            </Button>
+        </Grid>
+
+        <Grid Grid.Row="1" Margin="0,4,0,0">
+            <Grid.ColumnDefinitions >
+                <ColumnDefinition Width="5*" />
+                <ColumnDefinition Width="4" />
+                <ColumnDefinition Width="5*" />
+            </Grid.ColumnDefinitions>
+
+            <Grid Grid.Column="0">
+                <v:CodeGenViewModelView />
+            </Grid>
+
+            <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" bh:StateRestoreBehavior.GridSplitter="1B4763E1-5729-4BD3-A028-F5082E3BE1B2" />
+
+            <Grid Grid.Column="2" Name="grdCallTree">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="4"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <DataGrid  ItemsSource="{Binding CallTreeDT}" IsReadOnly="True" SelectedItem="{Binding SelectedCallTreeItem}">
+                    <DataGrid.Columns>
+                        <DataGridTemplateColumn Header="Code Gen" Width="SizeToCells" IsReadOnly="True">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Content="Generate Code" Margin="10,0" Padding="10,0" Command="{Binding ElementName=gridRoot, Path=DataContext.ScmdOpenView}"
+                                        CommandParameter="{Binding RelativeSource={RelativeSource AncestorType={x:Type Window}}}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn >
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Button Command="{Binding ElementName=gridRoot, Path=DataContext.ScmdSourceUrl}"
+                                                    CommandParameter="{Binding}"
+                                                    Width="15" Height="15">
+                                                <Image Source="/CsFormAnalyzer;component/lib/images/folder.png" Stretch="None"/>
+                                            </Button>
+                                            <TextBlock Text="{Binding Path=SP}"  />
+                                            <Button>
+                                                <Image Source="/CsFormAnalyzer;component/lib/images/diskdrive.png" Stretch="None"/>
+                                            </Button>
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <GridSplitter Grid.Row="1" HorizontalAlignment="Stretch" bh:StateRestoreBehavior.GridSplitter="7E1548FA-4706-4F87-85B2-8E4D97462A91" />
+                
+                <v:CodeGen_Model_ServiceView  Grid.Row="2" DataContext="{Binding Path=CodeGenModelVM}"/>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>
