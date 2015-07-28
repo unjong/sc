@@ -30,10 +30,28 @@ namespace CsFormAnalyzer
 		public MainWindow()
 		{
 			InitializeComponent();
-
+                        
+            cTabContorl.SelectedIndex = Convert.ToInt32(AppManager.Current.Settings.Get(cTabContorl.Name + ".SelectedIndex"));
+            cTabContorl.SelectionChanged += cTabContorl_SelectionChanged;            
             //Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("ko-kr");
             //Thread.CurrentThread.CurrentUICulture = new System.Globalization.CultureInfo("ko-kr");
+
+            //folderExplorer.SelectedPathChanged += folderExplorer_SelectedPathChanged;
+
+            //var selectedPath = AppManager.Current.Settings.Get("folderExplorer.SelectedPath");
+            //if (selectedPath != null)
+            //    folderExplorer.SelectedPath = selectedPath;                        
 		}
+
+        void cTabContorl_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            AppManager.Current.Settings.Set(cTabContorl.Name + ".SelectedIndex", cTabContorl.SelectedIndex.ToString());
+        }
+
+        //private void folderExplorer_SelectedPathChanged(object sender, DependencyPropertyChangedEventArgs e)
+        //{
+        //    AppManager.Current.Settings.Set("folderExplorer.SelectedPath", e.NewValue as string);
+        //}
 
         private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {

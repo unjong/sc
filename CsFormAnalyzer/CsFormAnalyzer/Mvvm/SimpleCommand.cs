@@ -9,7 +9,10 @@ namespace CsFormAnalyzer.Mvvm
 {
 	public class SimpleCommand : ICommand
 	{
-		public SimpleCommand(Action onExecute, Func<bool> onCanExcute = null)
+        private Action<object> onExecute;
+        private Func<bool> onCanExcute;
+
+		public SimpleCommand(Action<object> onExecute, Func<bool> onCanExcute = null)
 		{
 			this.onExecute = onExecute;
 			this.onCanExcute = onCanExcute;
@@ -17,7 +20,7 @@ namespace CsFormAnalyzer.Mvvm
 
 		public void Execute(object parameter)
 		{
-			onExecute.Invoke();
+			onExecute.Invoke(parameter);
 		}
 
 		public bool CanExecute(object parameter)
@@ -38,8 +41,5 @@ namespace CsFormAnalyzer.Mvvm
 		{
 			CommandManager.InvalidateRequerySuggested();
 		}
-
-		private Action onExecute;
-		private Func<bool> onCanExcute;
 	}
 }

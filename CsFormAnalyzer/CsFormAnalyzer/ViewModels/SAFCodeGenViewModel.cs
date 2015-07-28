@@ -2,6 +2,7 @@
 using CsFormAnalyzer.Mvvm;
 using SC.WPF.Tools.CodeHelper;
 using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -12,28 +13,55 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using CsFormAnalyzer.Utils;
+using System.Text.RegularExpressions;
+using System.Diagnostics;
 namespace CsFormAnalyzer.ViewModels
 {
-	public class SAFCodeGenViewModel : ViewModelBase
-	{
+	public partial class SAFCodeGenViewModel : ViewModelBase
+    {
 
-        #region DBConnectionString
-        string dbConnectionString = string.Empty;
-        public string DBConnectionString
+        #region DBConnectionList
+        Dictionary<string, string> dbConnectionList;
+        public Dictionary<string,string> DBConnectionList
         {
             get
             {
-                if (string.IsNullOrEmpty(dbConnectionString))
-                    dbConnectionString = "Data Source=10.28.16.21;Initial Catalog=HISH;User ID=dev_user;Password=password1!;";
-                return dbConnectionString;
-            }
-            set
-            {
-                dbConnectionString = value;
-                OnPropertyChanged();
+                if (dbConnectionList == null)
+                {
+                    dbConnectionList = new Dictionary<string, string>();
+                    dbConnectionList.Add("HP", "Data Source=10.28.16.21;Initial Catalog=HISH;User ID=dev_user;Password=password1!;");
+                    dbConnectionList.Add("SP", "Data Source=10.28.16.21;Initial Catalog=HISS;User ID=dev_user;Password=password1!;");
+                    dbConnectionList.Add("MR", "Data Source=10.28.16.21;Initial Catalog=HISE;User ID=dev_user;Password=password1!;");
+                    dbConnectionList.Add("CM", "Data Source=10.28.16.21;Initial Catalog=HISZ;User ID=dev_user;Password=password1!;");
+                    dbConnectionList.Add("MD", "Data Source=10.28.16.21;Initial Catalog=HISM;User ID=dev_user;Password=password1!;");
+                }
+                return dbConnectionList;
             }
         } 
         #endregion
+
+        #region SelectedDBConnection
+        string _selectedDbCon;
+        public string SelectedDBConnection
+        {
+            get
+            {
+                return _selectedDbCon;
+            }
+            set
+            {
+                _selectedDbCon = value;
+            }
+        } 
+        #endregion
+
+        public string DBConnectionString
+        {
+            get;
+            set;
+        }
+
+        
 
         #region Code_Req_Resp_Model
         string code_Req_Resp_Model;
@@ -302,6 +330,7 @@ namespace CsFormAnalyzer.ViewModels
             }
             SPNameList = info;
         }
+
         #endregion
 
         #region EditSPParamCommand
@@ -325,45 +354,14 @@ namespace CsFormAnalyzer.ViewModels
             }
         }
 
-        private void OnExcuteSPCommand()
+        private void OnExcuteSPCommand(object param)
         {
           
         }
-        #endregion 
+        #endregion
 
-
-        public SAFCodeGenViewModel()
+        internal void Run()
         {
-            StartGentCommand = CreateCommand(OnStartGentCommand);
-            ConnectCommand = CreateCommand(OnConnectCommand);
-            GetSPParamCommand = CreateCommand(OnEditSPParamCommand);
-        }
-
-	}
-
-    public class SPParam
-    {
-        public string ParamName
-        { get; set; }
-
-        public string ParamValue
-        {
-            get;
-            set;
-        }
-    }
-
-    public static class StringExtensions
-    {
-        public static string Left(this string value, int maxLength)
-        {
-            if (string.IsNullOrEmpty(value)) return value;
-            maxLength = Math.Abs(maxLength);
-
-            return (value.Length <= maxLength
-                   ? value
-                   : value.Substring(0, maxLength)
-                   );
         }
     }
 }

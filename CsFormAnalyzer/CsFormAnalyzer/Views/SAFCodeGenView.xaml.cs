@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CsFormAnalyzer.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -28,6 +29,13 @@ namespace CsFormAnalyzer.Views
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             this.bdrSPParamInfo.Visibility = System.Windows.Visibility.Collapsed;
+        }
+
+        private void Button_Click_1(object sender, RoutedEventArgs e)
+        {
+            BizCallTreeAnalysisView pv = new BizCallTreeAnalysisView();
+            pv.DataContext = new BizCallTreeAnalysisVM();
+            pv.ShowDialog();
         }
     }
 }

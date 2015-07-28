@@ -6,5 +6,6 @@
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="/CsFormAnalyzer;component/Themes/FolderExplorer.xaml" />
         <ResourceDictionary Source="/CsFormAnalyzer;component/Themes/ProgressRing.xaml" />
+        <ResourceDictionary Source="/CsFormAnalyzer;component/Themes/ScTabItem.xaml" />
     </ResourceDictionary.MergedDictionaries>
 </ResourceDictionary>

@@ -37,7 +37,10 @@ namespace CsFormAnalyzer.Core
                 columnInfo[i] = columnInfo[i].Trim().Replace("\"", "").Replace(");", "").Replace("CommonModule.CellTypeProperty.", "").Replace("CommonModule.Alignment.", "");
                 columnInfo[i] = columnInfo[i].Replace("HIS.WinUI.Controls.Spread.CommonModule.CellTypeProperty.", "")
                                                .Replace("HIS.WinUI.Controls.Spread.CommonModule.Alignment.", "")
-                                               .Replace("HIS.WinUI.Controls.Spread.", "");
+                                               .Replace("HIS.WinUI.Controls.Spread.", "")
+                                               .Replace("{","")
+                                               .Replace("CommonModule.DateTimeFormat.","");
+                columnInfo[i] = columnInfo[i].Trim();
                 if (columnInfo[i].LastIndexOf("//") > 0)
                     columnInfo[i].Remove(columnInfo[i].LastIndexOf("//"));
 			}

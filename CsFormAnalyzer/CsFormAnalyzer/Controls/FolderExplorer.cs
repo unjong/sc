@@ -38,7 +38,19 @@ namespace CsFormAnalyzer.Controls
 			DependencyProperty.Register("SelectedPath", typeof(string), typeof(FolderExplorer), new FrameworkPropertyMetadata()
 			{
 				BindsTwoWayByDefault = true,
-			});
+                PropertyChangedCallback = OnSelectedPathChanged
+			}
+            );
+
+        public delegate void SelectedPathChangedHandler(object sender, DependencyPropertyChangedEventArgs e);
+        public event SelectedPathChangedHandler SelectedPathChanged;
+
+        private static void OnSelectedPathChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            var el = d as FolderExplorer;
+            if (el.SelectedPathChanged != null)
+                el.SelectedPathChanged(d, e);
+        }
 
 		public string SearchPattern
 		{
@@ -134,7 +146,7 @@ namespace CsFormAnalyzer.Controls
 				temp2 = @"\";
 			}
 
-			SetCurrentValue(SelectedPathProperty, path);
+			SetCurrentValue(SelectedPathProperty, path);            
 		}		
 	}
 }

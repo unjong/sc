@@ -177,16 +177,20 @@ namespace CsFormAnalyzer.Core
                      if (line.StartsWith("//") || line.Length == 0) continue;
                      if(line.StartsWith("/*"))
                      {
-                         while( (line = file.ReadLine()) !=null )
+                         if (!line.EndsWith("*/"))
                          {
-                             if (line.EndsWith("*/"))                                
-                                 break;
+
+                             while ((line = file.ReadLine()) != null)
+                             {
+                                 if (line.EndsWith("*/"))
+                                     break;
+                             }
                          }
                          continue;
                      }
 
                      if (line.Contains(".InitialHeader") || line.Contains(".InitialDateTimeHeader") || line.Contains(".InitialMaskEditHeader") ||
-                         line.Contains(".InitialMoneyHeader") || line.Contains(".InitialValuedComboHeader") )
+                         line.Contains(".InitialMoneyHeader") || line.Contains(".InitialValuedComboHeader") || line.Contains(".InitialDateTimeHeader") )
                      {
 
                          HeaderParser parser = HeaderParser.CreateParser(line);
@@ -232,7 +236,7 @@ namespace CsFormAnalyzer.Core
                          if (columnArgs.Contains("//"))
                              columnArgs = columnArgs.Remove(columnArgs.LastIndexOf("//"));
                          string[] columnInfos = columnArgs.Split(',');
-                         if (columnInfos.Length > 7)
+                         if (columnInfos.Length >= 7)
                          {
                              HeaderParser.ReplaceColumnInfo(columnInfos);
                              DataRow dr = dt2.Rows.Add();
@@ -241,11 +245,19 @@ namespace CsFormAnalyzer.Core
                      }
                      else
                      {
-                         if (headerStart && dt2 != null && dt2.Rows.Count > 0)
+                         if (line.Contains(".ColumnSpan"))
                          {
-                             dtList.Add(dt2);
+
                          }
-                         headerStart = false;
+                         else
+                         {
+                             if (headerStart && dt2 != null && dt2.Rows.Count > 0)
+                             {
+                                 dtList.Add(dt2);
+                                 dt2 = null;
+                             }
+                             headerStart = false;
+                         }
                      }
                      #endregion
                  }

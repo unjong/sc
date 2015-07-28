@@ -9,6 +9,26 @@ namespace CsFormAnalyzer.Mvvm
 {
 	public class AsyncCommand : ICommand
 	{
+        private Func<Task> onExcute;
+        private Func<bool> onCanExcute;
+
+        public delegate void IsBusyChangedHandler(AsyncCommand command, bool isBusy);
+        public event IsBusyChangedHandler IsBusyChanged;
+
+        private bool _IsBusy;
+        public bool IsBusy
+        {
+            get
+            {
+                return _IsBusy;
+            }
+            set
+            {
+                _IsBusy = value;
+                if (IsBusyChanged != null) IsBusyChanged(this, value);
+            }
+        }
+
 		public AsyncCommand(Func<Task> onExcute, Func<bool> onCanExcute = null)
 		{			
 			this.onExcute = onExcute;
@@ -41,25 +61,5 @@ namespace CsFormAnalyzer.Mvvm
 		{
 			CommandManager.InvalidateRequerySuggested();
 		}
-				
-		private Func<Task> onExcute;
-		private Func<bool> onCanExcute;
-
-		public delegate void IsBusyChangedHandler(AsyncCommand command, bool isBusy);
-		public event IsBusyChangedHandler IsBusyChanged;
-
-		public bool IsBusy
-		{
-			get
-			{
-				return _IsBusy;
-			}
-			set
-			{
-				_IsBusy = value;
-				if (IsBusyChanged != null) IsBusyChanged(this, value);
-			}
-		}
-		private bool _IsBusy;
 	}
 }

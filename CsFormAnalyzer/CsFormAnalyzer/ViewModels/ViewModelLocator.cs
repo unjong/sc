@@ -12,20 +12,28 @@ namespace CsFormAnalyzer.ViewModels
 	{
 		public static ViewModelLocator Current { get { return Application.Current.Resources["ViewModelLocator"] as ViewModelLocator; } }
 
-		private Dictionary<Type, object> instances = new Dictionary<Type, object>();
+		private Dictionary<Type, object> instanceCache = new Dictionary<Type, object>();
 
-		private T GetInstance<T>()
-		{			
-			if (instances.ContainsKey(typeof(T)))
-			{
-				return (T)instances[typeof(T)];
-			}
-			else
-			{
-				var instance = Activator.CreateInstance<T>();
-				instances.Add(typeof(T), instance);
-				return instance;
-			}
+		public T GetInstance<T>(bool isNew = false)
+		{
+            if (isNew)
+            {
+                var instance = Activator.CreateInstance<T>();
+                return instance;
+            }
+            else
+            {
+                if (instanceCache.ContainsKey(typeof(T)))
+                {
+                    return (T)instanceCache[typeof(T)];
+                }
+                else
+                {
+                    var instance = Activator.CreateInstance<T>();
+                    instanceCache.Add(typeof(T), instance);
+                    return instance;
+                }
+            }
 		}
 
 		public MainWindowVM MainWindowVM { get { return GetInstance<MainWindowVM>(); } }
@@ -34,7 +42,15 @@ namespace CsFormAnalyzer.ViewModels
 
 		public DataColumnAnalysisVM DataColumnAnalysisVM { get { return GetInstance<DataColumnAnalysisVM>(); } }
 
-        public SAFCodeGenViewModel SAFCodeGenVM { get { return GetInstance<SAFCodeGenViewModel>(); } }	
-		
-	}
+        public SAFCodeGenViewModel SAFCodeGenVM { get { return GetInstance<SAFCodeGenViewModel>(); } }
+        public SuggestViewModel SuggestVM { get { return GetInstance<SuggestViewModel>(); } }        
+
+        public ProjectConterVM ProjectConterVM { get { return GetInstance<ProjectConterVM>(); } }
+
+        public CallTreeVM CallTreeVM { get { return GetInstance<CallTreeVM>(); } }
+
+        public CodeGenViewModelVM CodeGenViewModelVM { get { return GetInstance<CodeGenViewModelVM>(); } }
+
+        public EtcToolsVM EtcToolsVM { get { return GetInstance<EtcToolsVM>(); } }        
+    }
 }

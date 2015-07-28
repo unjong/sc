@@ -3,9 +3,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:bh="clr-namespace:CsFormAnalyzer.Behaviors"
+             xmlns:bh="clr-namespace:CsFormAnalyzer.Behaviours"
+             xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300"
+             d:DesignHeight="300" d:DesignWidth="600"
              DataContext="{Binding Source={StaticResource ViewModelLocator}, Path=ComponentAnalysisVM}"
              Background="White"
              >
@@ -15,6 +16,7 @@
             <RowDefinition Height="5*" />
             <RowDefinition Height="4" />
             <RowDefinition Height="5*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         
         <Expander Grid.Column="0" Header="Option">
@@ -41,6 +43,8 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="4" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="4" />
+                        <RowDefinition Height="Auto" />                        
                     </Grid.RowDefinitions>
                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Search Types :" HorizontalAlignment="Right" />
                     <TextBox Grid.Row="0" Grid.Column="2" Text="{Binding SearchTypes}" TextWrapping="Wrap" />
@@ -53,6 +57,8 @@
                     <TextBlock Grid.Row="8" Grid.Column="0" Text="Selector Types :" HorizontalAlignment="Right" />
                     <TextBox Grid.Row="8" Grid.Column="2" Text="{Binding SelectorTypes}" TextWrapping="Wrap" 
                              ToolTip="Selector Type은 ItemsSource와 SelectedItem 프로퍼티가 추가됩니다." />
+                    <TextBlock Grid.Row="10" Grid.Column="0" Text="Except Values :" HorizontalAlignment="Right" />
+                    <TextBox Grid.Row="10" Grid.Column="2" Text="{Binding ExceptValues}" TextWrapping="Wrap" />               
                 </Grid>
 
                 <Grid Grid.Column="1" Margin="4,0,0,0">
@@ -70,7 +76,8 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <TextBlock Grid.Row="0" Text="Component Info List :" />
-            <DataGrid Grid.Row="0" ItemsSource="{Binding ComponentInfoList}" SelectedItem="{Binding SelectedComponentInfo}" ScrollViewer.HorizontalScrollBarVisibility="Visible" Margin="0,20,0,0" />
+            <DataGrid Grid.Row="0" ItemsSource="{Binding ComponentInfoList}" SelectedItem="{Binding SelectedComponentInfo}" 
+                      ScrollViewer.HorizontalScrollBarVisibility="Visible" Margin="0,20,0,0" />
             <StackPanel Grid.Row="1">
                 <TextBlock Text="Check Lines :" />
                 <ListBox ItemsSource="{Binding CheckLines}" DisplayMemberPath="Line" MaxHeight="100" />
@@ -89,16 +96,15 @@
             <TextBlock Grid.Column="0" Text="Selected Details :" />
             <DataGrid Grid.Column="0" ItemsSource="{Binding FilteredPropertyList}" SelectedItem="{Binding SelectedPropertyListItem}" IsReadOnly="True" Margin="0,20,0,0" />
             <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" bh:StateRestoreBehavior.GridSplitter="7E2D4738-63AC-4E1B-9FFA-928BE3E24B78" />
-            <TextBlock Grid.Column="2" Text="Code :" />
-            <TextBox Grid.Column="2" Text="{Binding FullCode}" bh:TextBoxExtendBehavior.SearchText="{Binding SelectedLine}"
-                     AcceptsReturn="True" Margin="0,20,0,0" ScrollViewer.VerticalScrollBarVisibility="Auto" />
+            <TextBlock Grid.Column="2" Text="Code :" />                        
+            <avalonEdit:TextEditor Grid.Column="2" Margin="0,20,0,0" 
+                                   bh:BindAssist.Attach="True" bh:BindAssist.Bind="{Binding FullCode}"
+                                   bh:TextBoxExtender.SearchText="{Binding SelectedLine}"
+                                   FontFamily="Consolas" FontSize="10pt" ShowLineNumbers="True" SyntaxHighlighting="C#" />
         </Grid>
         
-        <!--
-        <StackPanel Grid.Row="3">
-            <TextBlock Text="Check Lines :" />
-            <ListBox ItemsSource="{Binding CheckLines}" ScrollViewer.VerticalScrollBarVisibility="Auto" MaxHeight="100"/>
+        <StackPanel Grid.Row="4" Orientation="Horizontal" Margin="0,4,0,0">
+            <Button Command="{Binding ClearComand}" Content="Clear" MinHeight="26" />
         </StackPanel>
-        -->
     </Grid>
 </UserControl>

@@ -4,12 +4,12 @@
         xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
         xmlns:c="clr-namespace:CsFormAnalyzer.Controls"
         xmlns:v="clr-namespace:CsFormAnalyzer.Views"
-        xmlns:bh="clr-namespace:CsFormAnalyzer.Behaviors"
+        xmlns:bh="clr-namespace:CsFormAnalyzer.Behaviours"
         xmlns:local="clr-namespace:CsFormAnalyzer"
         x:Name="win"
-        Title="MainWindow" Height="350" Width="525"
+        Title="MainWindow" Height="350" Width="525"        
         DataContext="{Binding Source={StaticResource ViewModelLocator}, Path=MainWindowVM}"
-        bh:StateRestoreBehavior.Window="9522D34E-3C59-42A2-BA37-B4D8069383C0"        
+        bh:StateRestoreBehavior.Window="9522D34E-3C59-42A2-BA37-B4D8069383C0" Icon="note_b.ico"        
         >
     <Grid Margin="4">
         <Grid.RowDefinitions>
@@ -18,24 +18,24 @@
         </Grid.RowDefinitions>
         
         <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" MinWidth="130" />
-                <ColumnDefinition Width="4" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
+            <!--<grid.columndefinitions>
+                <columndefinition width="auto" />
+                <columndefinition width="4" />
+                <columndefinition width="*" />
+            </grid.columndefinitions>-->
 
-            <Grid Grid.Column="0">
+            <!--<Grid Grid.Column="0">
                 <TextBlock Text="Select File :" />
                 <c:FolderExplorer Grid.Column="0" x:Name="folderExplorer" SearchPattern="*.cs" SelectedPath="{Binding TargetFile}" Margin="0,20,0,0" />
                 <ComboBox SelectionChanged="ComboBox_SelectionChanged" VerticalAlignment="Bottom" SelectedIndex="0">
                     <TextBlock Text="영어" />
                     <TextBlock Text="한글" />
                 </ComboBox>
-            </Grid>
+            </Grid>-->
 
-            <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch" bh:StateRestoreBehavior.GridSplitter="46C48C99-B0CD-423F-8066-76E7B1AFE77B" />
+            <!--<GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch" bh:StateRestoreBehavior.GridSplitter="46C48C99-B0CD-423F-8066-76E7B1AFE77B" />-->
             
-            <Grid Grid.Column="2">
+            <Grid Grid.Column="2">                
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -51,22 +51,55 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Text="Target File :" HorizontalAlignment="Right" VerticalAlignment="Center" />
                         <TextBox Grid.Column="2" Text="{Binding Path=TargetFile}" />
-                        <Button Grid.Column="4" Command="{Binding RunCommand}" Content="Run" Height="26" MinWidth="80" Padding="10,0" />
+                        <Button Name="btn" Grid.Column="4" Command="{Binding RunCommand}" Content="Run" Height="26" MinWidth="80" Padding="10,0" />
                     </Grid>
                     
-                    <TabControl Grid.Row="1" Margin="0,4,0,0">
-                        <TabItem Header="Component Info">
+                    <TabControl Grid.Row="1" Margin="0,4,0,0" x:Name="cTabContorl" >
+                        <TabItem Header="Component Info"
+                                 IsSelected="{Binding SelectedTabItem, Converter={StaticResource StringToBoolByParamConverter}, ConverterParameter=ComponentInfo}"
+                                 >
                             <v:ComponentAnalysisView />
                         </TabItem>
-                        <TabItem Header="GridColumn Info">
+                        <TabItem Header="GridColumn Info"
+                                 IsSelected="{Binding SelectedTabItem, Converter={StaticResource StringToBoolByParamConverter}, ConverterParameter=GridColumnInfo}"
+                                 >
                             <v:DataColumnAnalysisView />
                         </TabItem>
-                        <TabItem Header="SAF Code Gen">
+                        <TabItem Header="Call Tree"
+                                 IsSelected="{Binding SelectedTabItem, Converter={StaticResource StringToBoolByParamConverter}, ConverterParameter=CallTree}"
+                                 >
+                            <!--<v:CallTreeView />-->
+                            <v:CallTreeViewV2 />
+                        </TabItem>
+                        <TabItem Header="Suggest"
+                                 IsSelected="{Binding SelectedTabItem, Converter={StaticResource StringToBoolByParamConverter}, ConverterParameter=Suggest}"
+                                 >
+                            <!--<v:CallTreeView />-->
+                            <v:SuggestView />
+                        </TabItem>
+                        <!--
+                        <TabItem Header="Etc Tools"
+                                 IsSelected="{Binding SelectedTabItem, Converter={StaticResource StringToBoolByParamConverter}, ConverterParameter=EtcTools}"
+                                 >
+                            <v:EtcToolsView />
+                        </TabItem>
+                        -->
+                        <!--
+                        <TabItem Header="SAF Code Gen"
+                                 IsSelected="{Binding SelectedTabItem, Converter={StaticResource StringToBoolByParamConverter}, ConverterParameter=SAFCodeGen}">
                             <v:SAFCodeGenView/>
-                        </TabItem>                        
+                        </TabItem>
+                        -->
+                        <!--
+                        <TabItem Header="Project Counter"
+                                 IsSelected="{Binding SelectedTabItem, Converter={StaticResource StringToBoolByParamConverter}, ConverterParameter=ClassList}"
+                                 >
+                            <v:ProjectConterView />
+                        </TabItem>
+                        -->
                     </TabControl>                    
                 </Grid>
-            </Grid>            
+            </Grid>
         </Grid>
         <!--
         <Grid Grid.Row="1" Margin="0,4,0,0">

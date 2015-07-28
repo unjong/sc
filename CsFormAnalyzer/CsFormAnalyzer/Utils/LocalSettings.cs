@@ -50,6 +50,16 @@ namespace CsFormAnalyzer.Utils
 				return defaultReturn;
 		}
 
+        public void Remove(string key)
+        {
+            if (ContainsKey(key))
+            {
+                settings.Remove(key);
+                config.Save(ConfigurationSaveMode.Modified);
+                ConfigurationManager.RefreshSection(config.AppSettings.SectionInformation.Name);
+            }
+        }
+
 		private bool ContainsKey(string key)
 		{
 			return settings.AllKeys.Contains<string>(key);
@@ -60,5 +70,5 @@ namespace CsFormAnalyzer.Utils
 			config.Save(ConfigurationSaveMode.Full);
 			ConfigurationManager.RefreshSection(config.AppSettings.SectionInformation.Name);
 		}
-	}
+    }
 }

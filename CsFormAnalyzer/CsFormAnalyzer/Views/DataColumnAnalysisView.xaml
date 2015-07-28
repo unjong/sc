@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:c="clr-namespace:CsFormAnalyzer.Converters"
+             xmlns:bh="clr-namespace:CsFormAnalyzer.Behaviours"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300"
              DataContext="{Binding Source={StaticResource ViewModelLocator}, Path=DataColumnAnalysisVM}"
@@ -15,19 +16,53 @@
     </UserControl.Resources>
     
     <Grid>
-        <ScrollViewer VerticalScrollBarVisibility="Auto">
-            <ItemsControl ItemsSource="{Binding ResultTables}">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <StackPanel />
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <DataGrid ItemsSource="{Binding}" />
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ScrollViewer>
+        <TabControl>
+            <TabItem Header="Parse Result">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding ResultTables}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <DataGrid ItemsSource="{Binding}" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </TabItem>
+            <TabItem Header="Column Spliter">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="5*" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="5*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Text="Column Initialize Code :" />
+                    <TextBox Grid.Row="0" Text="{Binding ColumnInitCode}" AcceptsReturn="True" Margin="0,20,0,0" />
+                    
+                    <GridSplitter Grid.Row="1" HorizontalAlignment="Stretch" bh:StateRestoreBehavior.GridSplitter="E46FD173-64C7-42EC-874E-D0A17F775FF5" />                    
+                    <Button Grid.Row="1" Command="{Binding ColumnSplitCommand}" Content="Parse" Margin="0,2" Height="26" />
+
+                    <TextBlock Grid.Row="2" Text="Result :" />
+                    <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Margin="0,20,0,0">
+                        <ItemsControl ItemsSource="{Binding ColumnSplitResult}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <DataGrid ItemsSource="{Binding}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </TabItem>
+        </TabControl>
     </Grid>
 </UserControl>

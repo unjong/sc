@@ -15,132 +15,184 @@ using System.Windows.Controls;
 namespace CsFormAnalyzer.ViewModels
 {
 	class ComponentAnalysisVM : ViewModelBase
-	{
-		public string TargetFile { get { return _TargetFile; } set { _TargetFile = value; OnPropertyChanged(); } }
-		private string _TargetFile;
+    {
+        #region Properties
 
-		public string SearchTypes { get { return _SearchTypes; } set { _SearchTypes = value; OnPropertyChanged(); } }
-		private string _SearchTypes;
+        public string TargetFile { get { return _TargetFile; } set { _TargetFile = value; OnPropertyChanged(); } }
+        private string _TargetFile;
 
-		public string SearchProperties { get { return _SearchProperties; } set { _SearchProperties = value; OnPropertyChanged(); } }
-		private string _SearchProperties;
+        public string SearchTypes { get { return _SearchTypes; } set { _SearchTypes = value; OnPropertyChanged(); } }
+        private string _SearchTypes;
 
-		public string SearchEvents { get { return _SearchEvents; } set { _SearchEvents = value; OnPropertyChanged(); } }
-		private string _SearchEvents;
+        public string SearchProperties { get { return _SearchProperties; } set { _SearchProperties = value; OnPropertyChanged(); } }
+        private string _SearchProperties;
 
-		public string RemovePrefixs { get { return _RemovePrefixs; } set { _RemovePrefixs = value; OnPropertyChanged(); } }
-		private string _RemovePrefixs;
+        public string SearchEvents { get { return _SearchEvents; } set { _SearchEvents = value; OnPropertyChanged(); } }
+        private string _SearchEvents;
 
-		public string SelectorTypes { get { return _SelectorTypes; } set { _SelectorTypes = value; OnPropertyChanged(); } }
-		private string _SelectorTypes;
-				
-		public IEnumerable ComponentInfoList { get { return _ComponentInfoList; } set { _ComponentInfoList = value; OnPropertyChanged(); } }
-		private IEnumerable _ComponentInfoList;
+        public string RemovePrefixs { get { return _RemovePrefixs; } set { _RemovePrefixs = value; OnPropertyChanged(); } }
+        private string _RemovePrefixs;
 
-		private object _SelectedComponentInfo;		
-		public object SelectedComponentInfo 
-		{ 
-			get 
-			{ 
-				return _SelectedComponentInfo; 
-			} 
-			set 
-			{ 
-				_SelectedComponentInfo = value; 
-				OnPropertyChanged();
+        public string SelectorTypes { get { return _SelectorTypes; } set { _SelectorTypes = value; OnPropertyChanged(); } }
+        private string _SelectorTypes;
 
-				var drv = value as DataRowView;
-				if (drv == null) return;
+        public string ExceptValues { get { return _ExceptValues; } set { _ExceptValues = value; OnPropertyChanged(); } }
+        private string _ExceptValues;
 
-				this.FilteredPropertyList = this.PropertyList
-					.Where(p => string.IsNullOrEmpty(Convert.ToString(drv.Row["name"])) != true 
-						&& p.Name.Equals(Convert.ToString(drv.Row["name"]))).Cast<ComponentPropertyInfo>();
-				this.SelectedPropertyListItem = this.FilteredPropertyList.Where(p => p.Line == Convert.ToString(drv.Row["line"])).FirstOrDefault();
-			} 
-		}
-		
+        public IEnumerable ComponentInfoList { get { return _ComponentInfoList; } set { _ComponentInfoList = value; OnPropertyChanged(); } }
+        private IEnumerable _ComponentInfoList;
 
-		public IEnumerable CheckLines { get { return _CheckLines; } set { _CheckLines = value; OnPropertyChanged(); } }
-		private IEnumerable _CheckLines;
+        private object _SelectedComponentInfo;
+        public object SelectedComponentInfo
+        {
+            get
+            {
+                return _SelectedComponentInfo;
+            }
+            set
+            {
+                _SelectedComponentInfo = value;
+                OnPropertyChanged();
 
-		public IEnumerable<ComponentPropertyInfo> FilteredPropertyList { get { return _FilteredPropertyList; } set { _FilteredPropertyList = value; OnPropertyChanged(); } }
-		private IEnumerable<ComponentPropertyInfo> _FilteredPropertyList;
+                var drv = value as DataRowView;
+                if (drv == null) return;
 
-		private ComponentPropertyInfo _SelectedPropertyListItem;
-		public ComponentPropertyInfo SelectedPropertyListItem 
-		{ 
-			get 
-			{ 
-				return _SelectedPropertyListItem; 
-			} 
-			set 
-			{ 
-				_SelectedPropertyListItem = value; 
-				OnPropertyChanged();
-								
-				if (value != null)
-				{	
-					this.SelectedLine = value.Line;
-				}
-			} 
-		}		
+                this.FilteredPropertyList = this.PropertyList
+                    .Where(p => string.IsNullOrEmpty(Convert.ToString(drv.Row["name"])) != true
+                        && p.Name.Equals(Convert.ToString(drv.Row["name"]))).Cast<ComponentAnalysis.ComponentPropertyInfo>();
+                this.SelectedPropertyListItem = this.FilteredPropertyList.Where(p => p.Line == Convert.ToString(drv.Row["line"])).FirstOrDefault();
+            }
+        }
 
-		public string FullCode { get { return _FullCode; } set { _FullCode = value; OnPropertyChanged(); } }
-		private string _FullCode;
 
-		public List<ComponentPropertyInfo> PropertyList { get { return _PropertyList; } set { _PropertyList = value; OnPropertyChanged(); } }
-		private List<ComponentPropertyInfo> _PropertyList;
+        public IEnumerable CheckLines { get { return _CheckLines; } set { _CheckLines = value; OnPropertyChanged(); } }
+        private IEnumerable _CheckLines;
 
-		public string SelectedLine { get { return _SelectedLine; } set { _SelectedLine = value; OnPropertyChanged(); } }
-		private string _SelectedLine;
+        public IEnumerable<ComponentAnalysis.ComponentPropertyInfo> FilteredPropertyList { get { return _FilteredPropertyList; } set { _FilteredPropertyList = value; OnPropertyChanged(); } }
+        private IEnumerable<ComponentAnalysis.ComponentPropertyInfo> _FilteredPropertyList;
 
-		private ComponentAnalysis thisComponentAnalysis;
-				
-		public ICommand RefreshCommand { get; private set; }
-		public ICommand SaveCommand { get; private set; }
+        private ComponentAnalysis.ComponentPropertyInfo _SelectedPropertyListItem;
+        public ComponentAnalysis.ComponentPropertyInfo SelectedPropertyListItem
+        {
+            get
+            {
+                return _SelectedPropertyListItem;
+            }
+            set
+            {
+                _SelectedPropertyListItem = value;
+                OnPropertyChanged();
 
-		public ComponentAnalysisVM()
-		{
-			this.RefreshCommand = base.CreateCommand(OnRefreshCommandExecute);
-			this.SaveCommand = base.CreateCommand(OnSaveCommandExecute);
+                if (value != null)
+                {
+                    this.SelectedLine = value.Line;
+                }
+            }
+        }
 
-			OnRefreshCommandExecute();
-		}
+        public string FullCode { get { return _FullCode; } set { _FullCode = value; OnPropertyChanged(); } }
+        private string _FullCode;
 
-		internal void Run()
-		{
+        public List<ComponentAnalysis.ComponentPropertyInfo> PropertyList { get { return _PropertyList; } set { _PropertyList = value; OnPropertyChanged(); } }
+        private List<ComponentAnalysis.ComponentPropertyInfo> _PropertyList;
+
+        public string SelectedLine { get { return _SelectedLine; } set { _SelectedLine = value; OnPropertyChanged(); } }
+        private string _SelectedLine;
+
+        #endregion
+
+        #region Commands
+
+        public ICommand RefreshCommand { get; private set; }
+        public ICommand SaveCommand { get; private set; }
+        public ICommand ClearComand { get; private set; }
+        
+        public override void InitCommands()
+        {
+            this.RefreshCommand = base.CreateCommand(OnExecuteRefreshCommand);
+            this.SaveCommand = base.CreateCommand(OnExecuteSaveCommand);
+            this.ClearComand = base.CreateCommand(OnExecuteClearComand);
+
+            OnExecuteRefreshCommand(null);
+        }
+
+        private void OnExecuteRefreshCommand(object param)
+        {
+            var path = System.IO.Path.Combine(Properties.SCResxControlText.ConfigPath, @"ComponentAnalysisConfig.xml");
+            var config = Utils.XmlSerialize.XmlToObject(path, typeof(ComponentAnalysisConfig)) as ComponentAnalysisConfig;
+            if (config == null)
+            {
+                config = new ComponentAnalysisConfig();
+                config.LoadDefaultConfig();
+
+                Utils.XmlSerialize.ObjectToXml(path, config);
+            }
+
+            this.SearchTypes = config.SearchTypes;
+            this.SearchProperties = config.SearchProperties;
+            this.SearchEvents = config.SearchEvents;
+            this.RemovePrefixs = config.RemovePrefixs;
+            this.SelectorTypes = config.SelectorTypes;
+            this.ExceptValues = config.ExceptValues;
+        }
+
+        private void OnExecuteSaveCommand(object param)
+        {
+            var path = System.IO.Path.Combine(Properties.SCResxControlText.ConfigPath, @"ComponentAnalysisConfig.xml");
+            var config = new ComponentAnalysisConfig()
+            {
+                SearchTypes = this.SearchTypes,
+                SearchProperties = this.SearchProperties,
+                SearchEvents = this.SearchEvents,
+                RemovePrefixs = this.RemovePrefixs,
+                SelectorTypes = this.SelectorTypes,
+                ExceptValues = this.ExceptValues,
+            };
+            Utils.XmlSerialize.ObjectToXml(path, config);
+        }
+
+        private void OnExecuteClearComand(object obj)
+        {
+            ComponentInfoList = null;
+        }
+
+        #endregion
+
+        #region Methods
+
+        internal void Run()
+        {
 #if !DEBUG
 			try
 			{				
 #endif
-				//var path = @"D:\720 연세의료원\His2\HIS2.0\Source\WinUI\SP\PHA\HIS.WinUI.SP.PHA.AM.Furn\TdrgCnslMFNew.cs";
-				var path = TargetFile;				
-				var ca = new ComponentAnalysis()
-				{
-					Path = path,					
-					SearchTypes = this.SearchTypes.Replace(" ","").Split(','),
-					SearchProperties = this.SearchProperties.Replace(" ", "").Split(','),
-					SearchEvents = this.SearchEvents.Replace(" ", "").Split(','),
-					RemovePrefixs = this.RemovePrefixs.Replace(" ", "").Split(','),
-					SelectorTypes = this.SelectorTypes.Replace(" ", "").Split(','),
-				};
-				var bSuccess = ca.Run();
-				if (bSuccess)
-				{
-					this.ComponentInfoList = ca.ResultTable.DefaultView;
-					this.CheckLines = ca.CheckLines;
-					this.FullCode = ca.Code;
-					this.PropertyList = ca.PropertyList;
-				}
-				else
-				{
-					this.ComponentInfoList = null;
-					this.CheckLines = null;
-					this.FullCode = null;
-					this.PropertyList = null;
-				}
-
-				this.thisComponentAnalysis = ca;
+            //var path = @"D:\720 연세의료원\His2\HIS2.0\Source\WinUI\SP\PHA\HIS.WinUI.SP.PHA.AM.Furn\TdrgCnslMFNew.cs";
+            var path = TargetFile;
+            var ca = new ComponentAnalysis()
+            {
+                Path = path,
+                SearchTypes = this.SearchTypes.Replace(" ", "").Split(','),
+                SearchProperties = this.SearchProperties.Replace(" ", "").Split(','),
+                SearchEvents = this.SearchEvents.Replace(" ", "").Split(','),
+                RemovePrefixs = this.RemovePrefixs.Replace(" ", "").Split(','),
+                SelectorTypes = this.SelectorTypes.Replace(" ", "").Split(','),
+                ExceptValues = this.ExceptValues != null ? this.ExceptValues.Replace(" ", "").Split(',') : new string[] { },
+            };
+            var bSuccess = ca.Run();
+            if (bSuccess)
+            {
+                this.ComponentInfoList = ca.ResultTable.DefaultView;
+                this.CheckLines = ca.CheckLines;
+                this.FullCode = ca.Code;
+                this.PropertyList = ca.PropertyList;
+            }
+            else
+            {
+                this.ComponentInfoList = null;
+                this.CheckLines = null;
+                this.FullCode = null;
+                this.PropertyList = null;
+            }
 #if !DEBUG
 			}
 			catch(Exception ex)
@@ -149,49 +201,8 @@ namespace CsFormAnalyzer.ViewModels
                 System.Windows.MessageBox.Show(ex.SxGetErrorMessage());
 			}
 #endif
-		}
+        }
 
-		public void CopyToClipboard()
-		{
-			//Clipboard.SetText(ComponentInfoList);
-			//var enc = System.Text.Encoding.UTF8;
-			//DataObject obj = new DataObject();
-			//obj.SetData(DataFormats.Html, new
-			//System.IO.MemoryStream(enc.GetBytes(ComponentInfoList)));
-			//Clipboard.SetDataObject(obj, true);
-		}
-
-		private void OnRefreshCommandExecute()
-		{
-			var path = System.IO.Path.Combine(Properties.SCResxControlText.ConfigPath, @"ComponentAnalysisConfig.xml");
-			var config = Utils.XmlSerialize.XmlToObject(path, typeof(ComponentAnalysisConfig)) as ComponentAnalysisConfig;
-			if (config == null)
-			{
-				config = new ComponentAnalysisConfig();
-				config.LoadDefaultConfig();
-
-				Utils.XmlSerialize.ObjectToXml(path, config);
-			}
-
-			this.SearchTypes = config.SearchTypes;
-			this.SearchProperties = config.SearchProperties;
-			this.SearchEvents = config.SearchEvents;
-			this.RemovePrefixs = config.RemovePrefixs;
-			this.SelectorTypes = config.SelectorTypes;
-		}
-
-		private void OnSaveCommandExecute()
-		{
-			var path = System.IO.Path.Combine(Properties.SCResxControlText.ConfigPath, @"ComponentAnalysisConfig.xml");
-			var config = new ComponentAnalysisConfig()
-			{
-				SearchTypes = this.SearchTypes,
-				SearchProperties = this.SearchProperties,
-				SearchEvents = this.SearchEvents,
-				RemovePrefixs = this.RemovePrefixs,
-				SelectorTypes = this.SelectorTypes,
-			};
-			Utils.XmlSerialize.ObjectToXml(path, config);
-		}		
+        #endregion        
 	}
 }
