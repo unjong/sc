@@ -5,4 +5,5 @@
 
     <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
     <cv:StringToBoolByParamConverter x:Key="StringToBoolByParamConverter" />
+    <cv:EnumFlagConverter x:Key="EnumFlagConverter" />
 </ResourceDictionary>

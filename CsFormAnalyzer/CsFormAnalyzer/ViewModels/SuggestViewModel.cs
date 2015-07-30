@@ -242,12 +242,24 @@ namespace CsFormAnalyzer.ViewModels
 
             private void OnExecuteUpdateFileCommand(object obj)
             {
-                if (MessageBox.Show("Resource File 과 Source File 을 모두 업데이트 할까요?", "확인", MessageBoxButton.YesNo) != MessageBoxResult.Yes) return;
+                var resourceFilePath = System.IO.Path.GetDirectoryName(GetResourceFilePath());
+
+                if (SvnHelper.Update(resourceFilePath) != true)
+                {
+                    MessageBox.Show("SVN 업데이트에 실패했습니다.");
+                    return;
+                }
+
+                if (MessageBox.Show("Resource File, Source File의 소스코드에 반영 할까요?", "확인", MessageBoxButton.YesNo) != MessageBoxResult.Yes) 
+                    return;
 
                 UpdateResourceFile();
                 UpdateSourceFile();
 
-                MessageBox.Show("Resource File, Source File 이 업데이트 되었습니다.");
+                MessageBox.Show("Resource File, Source File의 소스코드에 반영 되었습니다.");
+
+                if (SvnHelper.Commit(resourceFilePath, "Localization Auto Update...") != true)
+                    MessageBox.Show("SVN 커밋에 실패했습니다. 확인이 필요합니다.");
 
                 Run();
             }
@@ -732,12 +744,24 @@ namespace CsFormAnalyzer.ViewModels
 
             private void OnExecuteUpdateFileCommand(object obj)
             {
-                if (MessageBox.Show("Resource File 과 Source File 을 모두 업데이트 할까요?", "확인", MessageBoxButton.YesNo) != MessageBoxResult.Yes) return;
+                var resourceFilePath = System.IO.Path.GetDirectoryName(GetResourceFilePath());
+
+                if (SvnHelper.Update(resourceFilePath) != true)
+                {
+                    MessageBox.Show("SVN 업데이트에 실패했습니다.");
+                    return;
+                }
+
+                if (MessageBox.Show("Resource File, Source File의 소스코드에 반영 할까요?", "확인", MessageBoxButton.YesNo) != MessageBoxResult.Yes)
+                    return;
 
                 UpdateResourceFile();
                 UpdateSourceFile();
 
-                MessageBox.Show("Resource File, Source File 이 업데이트 되었습니다.");
+                MessageBox.Show("Resource File, Source File의 소스코드에 반영 되었습니다.");
+
+                if (SvnHelper.Commit(resourceFilePath, "Localization Auto Update...") != true)
+                    MessageBox.Show("SVN 커밋에 실패했습니다. 확인이 필요합니다.");
 
                 Run();
             }

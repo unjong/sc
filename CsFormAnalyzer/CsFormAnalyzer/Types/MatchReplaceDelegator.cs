@@ -14,6 +14,7 @@ namespace CsFormAnalyzer.Types
         public MatchReplaceDelegator()
         {
         }
+
         public MatchReplaceDelegator(string pattern, string replacement)
         {
             this.Pattern = pattern;
@@ -31,7 +32,7 @@ namespace CsFormAnalyzer.Types
             if (string.IsNullOrEmpty(Replacement))
             {
                 if (Regex.IsMatch(value, Pattern, RegexOptions))
-                    return Regex.Replace(value, Pattern, m => MatchLogic(m), RegexOptions);
+                    return Regex.Replace(value, Pattern, m => MatchLogic(m, value), RegexOptions);
                 else
                     return value;
             }                
@@ -48,7 +49,7 @@ namespace CsFormAnalyzer.Types
             }
         }
 
-        public delegate string MatchLogicDelegate(Match match);
+        public delegate string MatchLogicDelegate(Match match, string value);
         public MatchLogicDelegate MatchLogic { get; set; }
     }
 }

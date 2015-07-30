@@ -135,5 +135,33 @@ namespace CsFormAnalyzer.Utils
                 throw exp;
             }
         }
+
+        public static bool RunCommand(string command)
+        {
+            ProcessStartInfo processInfo = new ProcessStartInfo();
+            processInfo.Verb = "runas";
+            processInfo.CreateNoWindow = true;
+            processInfo.UseShellExecute = false;
+            processInfo.RedirectStandardInput = true;
+            processInfo.RedirectStandardInput = false;
+            processInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                        
+            processInfo.FileName = "cmd.exe";
+            processInfo.Arguments = command;
+
+            try
+            {
+                using (Process exeProcess = Process.Start(processInfo))
+                {
+                    exeProcess.WaitForExit();
+                }
+            }
+            catch (Exception exp)
+            {
+                throw exp;
+            }
+
+            return true;
+        }
     }
 }

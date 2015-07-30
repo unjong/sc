@@ -6,6 +6,7 @@
              xmlns:c="clr-namespace:CsFormAnalyzer.Controls"
              xmlns:bh="clr-namespace:CsFormAnalyzer.Behaviours"
              xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
+             xmlns:regex="clr-namespace:System.Text.RegularExpressions;assembly=System"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300"
              Background="White"
@@ -125,10 +126,13 @@
                         </TabControl>
                 </Expander>
                 <Grid Grid.Row="1" bh:GridUtils.RowDefinitions="Auto,*">
-                    <StackPanel Grid.Row="0" HorizontalAlignment="Right" Orientation="Horizontal">
-                        <TextBlock Style="{StaticResource H3}" Text="Convert Type : " VerticalAlignment="Center" />
-                        <RadioButton Content="ViewModel" IsChecked="{Binding ConvertType, Converter={StaticResource StringToBoolByParamConverter}, ConverterParameter=ViewModel}" VerticalAlignment="Center" />
-                        <RadioButton Content="Server" IsChecked="{Binding ConvertType, Converter={StaticResource StringToBoolByParamConverter}, ConverterParameter=Server}" VerticalAlignment="Center" Margin="4,0,0,0" />
+                    <StackPanel Grid.Row="0" HorizontalAlignment="Right" >
+                        <StackPanel Grid.Row="0" Orientation="Horizontal">
+                            <TextBlock Style="{StaticResource H3}" Text="Convert Type : " VerticalAlignment="Center" />
+                            <RadioButton Content="ViewModel" IsChecked="{Binding ConvertType, Converter={StaticResource StringToBoolByParamConverter}, ConverterParameter=ViewModel}" VerticalAlignment="Center" />
+                            <RadioButton Content="Server" IsChecked="{Binding ConvertType, Converter={StaticResource StringToBoolByParamConverter}, ConverterParameter=Server}" VerticalAlignment="Center" Margin="4,0,0,0" />                            
+                        </StackPanel>
+                        <TextBlock Text="{Binding ConvertType, StringFormat='\{0\} 코드를 생성합니다.'}" VerticalAlignment="Center" HorizontalAlignment="Right" />
                     </StackPanel>
                     <Grid Grid.Row="1" bh:GridUtils.ColumnDefinitions="*,Auto,*" Margin="0,4,0,0">
                         <GroupBox Grid.Column="0" Header="SAF 2.0 Code" >
@@ -159,21 +163,36 @@
                 
                 <Grid Grid.Column="2" bh:GridUtils.RowDefinitions="2*,4,4*,4,4*">
 
-                    <Grid Grid.Row="0" bh:GridUtils.RowDefinitions="5*,5*,Auto" >
-                        <Label Grid.Row="0" Content="Search Regular Expression :" VerticalAlignment="Top" HorizontalAlignment="Left" />
-                        <TextBox Grid.Row="0" AcceptsReturn="True" Margin="0,22,84,0" 
+                    <Grid Grid.Row="0" bh:GridUtils.ColumnDefinitions="*,Auto">
+                        <Grid bh:GridUtils.RowDefinitions="5*,5*,Auto" >
+                            <Label Grid.Row="0" Content="Search Regular Expression :" VerticalAlignment="Top" HorizontalAlignment="Left" />
+                            <TextBox Grid.Row="0" AcceptsReturn="True" Margin="0,22,0,0" 
                                  x:Name="txtExpression" Text="{Binding Expression, UpdateSourceTrigger=PropertyChanged}" />
-                        
-                        <Label Grid.Row="1" Content="Replace Regular Expression :" VerticalAlignment="Top" HorizontalAlignment="Left" />
-                        <TextBox Grid.Row="1" AcceptsReturn="True" Margin="0,22,84,0" 
+
+                            <Label Grid.Row="1" Content="Replace Regular Expression :" VerticalAlignment="Top" HorizontalAlignment="Left" />
+                            <TextBox Grid.Row="1" AcceptsReturn="True" Margin="0,22,0,0" 
                                  x:Name="txtReplaceRegex" Text="{Binding ReplaceRegex, UpdateSourceTrigger=PropertyChanged}" />
 
-                        <Label Grid.Row="2" Content="Description :" VerticalAlignment="Top" HorizontalAlignment="Left" />
-                        <TextBox Grid.Row="2" AcceptsReturn="True" Margin="0,22,84,0" 
+                            <Label Grid.Row="2" Content="Description :" VerticalAlignment="Top" HorizontalAlignment="Left" />
+                            <TextBox Grid.Row="2" AcceptsReturn="True" Margin="0,22,0,0" 
                                  Text="{Binding RegexDescription}" />
+                        </Grid>
 
-                        <Button Grid.RowSpan="3" Content="Add to list" HorizontalAlignment="Right" VerticalAlignment="Bottom" 
-                                Command="{Binding AddToListCommand}" />
+                        <DockPanel Grid.Column="1" Margin="4,4,0,0" Width="150">
+                            <Button DockPanel.Dock="Bottom" Content="Add to list" Command="{Binding AddToListCommand}" />
+                            <StackPanel>
+                                <CheckBox IsChecked="{Binding Path=RegexOptions, Converter={StaticResource EnumFlagConverter}, ConverterParameter={x:Static regex:RegexOptions.None}}" Content="None" />
+                                <CheckBox IsChecked="{Binding Path=RegexOptions, Converter={StaticResource EnumFlagConverter}, ConverterParameter={x:Static regex:RegexOptions.IgnoreCase}}" Content="IgnoreCase" />
+                                <CheckBox IsChecked="{Binding Path=RegexOptions, Converter={StaticResource EnumFlagConverter}, ConverterParameter={x:Static regex:RegexOptions.Multiline}}" Content="Multiline" />
+                                <CheckBox IsChecked="{Binding Path=RegexOptions, Converter={StaticResource EnumFlagConverter}, ConverterParameter={x:Static regex:RegexOptions.ExplicitCapture}}" Content="ExplicitCapture" />
+                                <CheckBox IsChecked="{Binding Path=RegexOptions, Converter={StaticResource EnumFlagConverter}, ConverterParameter={x:Static regex:RegexOptions.Compiled}}" Content="Compiled" />
+                                <CheckBox IsChecked="{Binding Path=RegexOptions, Converter={StaticResource EnumFlagConverter}, ConverterParameter={x:Static regex:RegexOptions.Singleline}}" Content="Singleline" />
+                                <CheckBox IsChecked="{Binding Path=RegexOptions, Converter={StaticResource EnumFlagConverter}, ConverterParameter={x:Static regex:RegexOptions.IgnorePatternWhitespace}}" Content="IgnorePatternWhitespace" />
+                                <CheckBox IsChecked="{Binding Path=RegexOptions, Converter={StaticResource EnumFlagConverter}, ConverterParameter={x:Static regex:RegexOptions.RightToLeft}}" Content="RightToLeft" />
+                                <CheckBox IsChecked="{Binding Path=RegexOptions, Converter={StaticResource EnumFlagConverter}, ConverterParameter={x:Static regex:RegexOptions.ECMAScript}}" Content="ECMAScript" />
+                                <CheckBox IsChecked="{Binding Path=RegexOptions, Converter={StaticResource EnumFlagConverter}, ConverterParameter={x:Static regex:RegexOptions.CultureInvariant}}" Content="CultureInvariant" />
+                            </StackPanel>
+                        </DockPanel>
                     </Grid>
 
                     <GridSplitter Grid.Row="1" HorizontalAlignment="Stretch" bh:StateRestoreBehavior.GridSplitter="AFBB8ED0-F20E-44B1-9927-80D35788EB98" />

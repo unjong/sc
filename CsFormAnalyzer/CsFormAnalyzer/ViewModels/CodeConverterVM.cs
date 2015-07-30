@@ -251,7 +251,7 @@ DELETE TBL_CodeConvertDictionary
             {
                 Pattern = @"public [\w]+\(.*\)",
                 RegexOptions = RegexOptions.IgnoreCase,
-                MatchLogic = (m) =>
+                MatchLogic = (m, v) =>
                 {
                     var methodName = m.Value.Between(" ", "(");
                     if (m.Value.Between("(", ")", false, true).Length < 1)
@@ -276,7 +276,7 @@ DELETE TBL_CodeConvertDictionary
             {
                 Pattern = @"[^\n]*(DialogResult[\s]+[\w]+[\s]+=[\s]+MessageBox\.Show\(.*?\);)",
                 RegexOptions = RegexOptions.Singleline | RegexOptions.IgnoreCase,
-                MatchLogic = (m) =>
+                MatchLogic = (m, v) =>
                 {
                     var ret = m.Value;
                     if (ret.Trim().StartsWith("//")) return ret;
@@ -300,7 +300,7 @@ DELETE TBL_CodeConvertDictionary
             {
                 Pattern = @"[^\n]*((this\.)*btn([\w]+)_Click\(null,\s*null\);)",
                 RegexOptions = RegexOptions.Singleline | RegexOptions.IgnoreCase,
-                MatchLogic = (m) =>
+                MatchLogic = (m, v) =>
                 {
                     var ret = m.Value;
                     if (ret.Trim().StartsWith("//")) return ret;
@@ -320,7 +320,7 @@ DELETE TBL_CodeConvertDictionary
             matchReplaceDelegator = new MatchReplaceDelegator()
             {
                 Pattern = @"((HIS\.)*Legacy\.Message\.)*MessageManager\.GetMessage\([^\)]+\)",
-                MatchLogic = (m) =>
+                MatchLogic = (m, v) =>
                 {
                     // HIS.Legacy.Message.MessageManager.GetMessage("HIS.SP", "NOHAVE_RCPT_DATA")
                     // GetLocalizedText("SpResourceLocalize", "NOHAVE_RCPT_DATA")
@@ -340,7 +340,7 @@ DELETE TBL_CodeConvertDictionary
             matchReplaceDelegator = new MatchReplaceDelegator()
             {
                 Pattern = @"[^\s]+(ShowInstanceMessage|ShowMessagePopup)\([^;]+",
-                MatchLogic = (m) =>
+                MatchLogic = (m, v) =>
                 {
                     //MessageBoxViewer.ShowError(this, "HIS.SP", ex.Message, ex);
                     //this.ShowInstanceMessage("HIS.SP", "SC_INPUT_PTHONO_DATA", 3);
@@ -396,7 +396,7 @@ this.ShowMessagePopup(GetLocalizedText(""{0}MsgResourceLocalize"", {1}))",
             matchReplaceDelegator = new MatchReplaceDelegator()
             {
                 Pattern = @"(?:MessageBox\.Show\()(.*?)(?:\))",
-                MatchLogic = (m) =>
+                MatchLogic = (m, v) =>
                 {
                     // if(MessageBox.Show("시행취소 하시겠습니까?","확인",MessageBoxButtons.YesNo).Equals(System.Windows.Forms.DialogResult.Yes))
                     // Context.ViewManager.ShowConfirmPopup("시행취소 하시겠습니까?")
@@ -423,7 +423,7 @@ this.ShowMessagePopup(GetLocalizedText(""{0}MsgResourceLocalize"", {1}))",
             matchReplaceDelegator = new MatchReplaceDelegator()
             {
                 Pattern = @"this\.[\w]+\.Focus\(\);",
-                MatchLogic = (m) =>
+                MatchLogic = (m, v) =>
                 {
                     var name = m.Value.Between("this.", ".Focus", false, true);
                     var ret = string.Format(@"ControlSetters[""{0}""].IsFocus = true;", name);
@@ -440,7 +440,7 @@ this.ShowMessagePopup(GetLocalizedText(""{0}MsgResourceLocalize"", {1}))",
             //matchReplaceDelegator = new MatchReplaceDelegator()
             //{
             //    Pattern = @"[\w]*[hH][tT][\w]*\.Add\("".*\);",
-            //    MatchLogic = (m) =>
+            //    MatchLogic = (m, v) =>
             //    {
             //        // 			htAddParam.Add("OrdUserPos","Z2");
             //        // request.OrdUserPos = "Z2";
@@ -462,7 +462,7 @@ this.ShowMessagePopup(GetLocalizedText(""{0}MsgResourceLocalize"", {1}))",
             //matchReplaceDelegator = new MatchReplaceDelegator()
             //{
             //    Pattern = @"[\w]*[hH][tT][\w]*\[\""[\w]+""\]",
-            //    MatchLogic = (m) =>
+            //    MatchLogic = (m, v) =>
             //    {
             //        var property = m.Value.Between(@"""", @"""", false, true);
             //        var ret = string.Format(@"parameter.{0}", property, property);
@@ -478,7 +478,7 @@ this.ShowMessagePopup(GetLocalizedText(""{0}MsgResourceLocalize"", {1}))",
             matchReplaceDelegator = new MatchReplaceDelegator()
             {
                 Pattern = @"Color\.[\w]+;",
-                MatchLogic = (m) =>
+                MatchLogic = (m, v) =>
                 {
                     var colorKey = m.Value.Between(".", ";");
                     var ret = string.Format(@"new SolidColorBrush(Colors.{0});", colorKey);
@@ -494,7 +494,7 @@ this.ShowMessagePopup(GetLocalizedText(""{0}MsgResourceLocalize"", {1}))",
             matchReplaceDelegator = new MatchReplaceDelegator()
             {
                 Pattern = @"\[[^\]]+]\[""[^\]]+""]",
-                MatchLogic = (m) =>
+                MatchLogic = (m, v) =>
                 {
                     //selectList[i]["Qty"]
                     var target = m.Value.RegexBetween(@"[""", @"""]", true).FirstOrDefault();
@@ -514,7 +514,7 @@ this.ShowMessagePopup(GetLocalizedText(""{0}MsgResourceLocalize"", {1}))",
             matchReplaceDelegator = new MatchReplaceDelegator()
             {
                 Pattern = @"(Context\.GlobalInfo\.)*GlobalState\[""(.*)""\]",
-                MatchLogic = (m) =>
+                MatchLogic = (m, v) =>
                 {
                     var key = m.Groups.Count < 2 
                         ? m.Groups[1].Value
@@ -537,7 +537,7 @@ this.ShowMessagePopup(GetLocalizedText(""{0}MsgResourceLocalize"", {1}))",
             matchReplaceDelegator = new MatchReplaceDelegator()
             {
                 Pattern = @"MessageBoxViewer.ShowError\(.*?\);",
-                MatchLogic = (m) =>
+                MatchLogic = (m, v) =>
                 {
                     var parammeters = StringHelper.GetParams(m.Value.Between("(", ")", false, true));
                     string ret = m.Value;
@@ -558,7 +558,7 @@ this.ShowMessagePopup(GetLocalizedText(""{0}MsgResourceLocalize"", {1}))",
             matchReplaceDelegator = new MatchReplaceDelegator()
             {
                 Pattern = @"txt[\w]+\.Clear\(\);",
-                MatchLogic = (m) =>
+                MatchLogic = (m, v) =>
                 {
                     var name = m.Value.Between("txt", ".");
                     var ret = string.Format("{0}TextProperty = string.Empty;", name);
@@ -574,7 +574,7 @@ this.ShowMessagePopup(GetLocalizedText(""{0}MsgResourceLocalize"", {1}))",
             matchReplaceDelegator = new MatchReplaceDelegator()
             {
                 Pattern = @"this.Location = new Point\(([^\)]+)\);",
-                MatchLogic = (m) =>
+                MatchLogic = (m, v) =>
                 {
                     var values = m.Groups[1].Value.RegexMatches(@"[\d]+");
                     var ret = string.Format(@"this.CurrentWindow.Left = {0};
@@ -592,7 +592,7 @@ this.CurrentWindow.Top = {1};", values.ElementAt(0), values.ElementAt(1));
             //matchReplaceDelegator = new MatchReplaceDelegator()
             //{
             //    Pattern = @"HIS\.WinUI\.[\w.]+",
-            //    MatchLogic = (m) =>
+            //    MatchLogic = (m, v) =>
             //    {
             //        string ret = m.Value;
             //        var ns = m.Value.Split('.');
@@ -628,7 +628,7 @@ this.CurrentWindow.Top = {1};", values.ElementAt(0), values.ElementAt(1));
             //matchReplaceDelegator = new MatchReplaceDelegator()
             //{
             //    Pattern = @"[^\n]+(DataSet|DataTable) [^\r\n]+",
-            //    MatchLogic = (m) =>
+            //    MatchLogic = (m, v) =>
             //    {
             //        return string.Format("//remove? {0}", m.Value.Trim());
             //    },
@@ -642,7 +642,7 @@ this.CurrentWindow.Top = {1};", values.ElementAt(0), values.ElementAt(1));
             //matchReplaceDelegator = new MatchReplaceDelegator()
             //{
             //    Pattern = @"[^\n]+new (DataSet|DataTable|[\w]+Controller)\(",
-            //    MatchLogic = (m) =>
+            //    MatchLogic = (m, v) =>
             //    {
             //        return string.Format("//remove? {0}", m.Value.Trim());
             //    },
@@ -655,7 +655,7 @@ this.CurrentWindow.Top = {1};", values.ElementAt(0), values.ElementAt(1));
             //matchReplaceDelegator = new MatchReplaceDelegator()
             //{
             //    Pattern = @"[^\n]+\.Focus\(\);",
-            //    MatchLogic = (m) =>
+            //    MatchLogic = (m, v) =>
             //    {
             //        return string.Format("//remove? {0}", m.Value);
             //    },
@@ -669,7 +669,7 @@ this.CurrentWindow.Top = {1};", values.ElementAt(0), values.ElementAt(1));
             //{
             //    Pattern = @"[^\t]+Controller\.[^\r\n]+",
             //    RegexOptions = RegexOptions.IgnoreCase,
-            //    MatchLogic = (m) =>
+            //    MatchLogic = (m, v) =>
             //    {
 
             //        if (string.IsNullOrEmpty(this.Namespace))
@@ -733,7 +733,7 @@ this.CurrentWindow.Top = {1};", values.ElementAt(0), values.ElementAt(1));
             matchReplaceDelegator = new MatchReplaceDelegator()
             {
                 Pattern = @"[\w]+\.(ActiveSheet|[\w]+_Sheet1|Sheets\[0\])(\.Rows.Count|\.RowCount) = 0;",
-                MatchLogic = (m) =>
+                MatchLogic = (m, v) =>
                 {
                     var name = m.Value.LeftBySearch(".");
                     if (name.Equals("this")) name = m.Value.Between(".", ".");
@@ -755,7 +755,7 @@ this.CurrentWindow.Top = {1};", values.ElementAt(0), values.ElementAt(1));
             matchReplaceDelegator = new MatchReplaceDelegator()
             {
                 Pattern = @"[\w]+\.(ActiveSheet|Sheets\[0\])(\.Rows.Count|\.RowCount)",
-                MatchLogic = (m) =>
+                MatchLogic = (m, v) =>
                 {
                     var name = m.Value.LeftBySearch(".");
                     var key = name + @"\.DataSource";
@@ -774,7 +774,7 @@ this.CurrentWindow.Top = {1};", values.ElementAt(0), values.ElementAt(1));
             matchReplaceDelegator = new MatchReplaceDelegator()
             {
                 Pattern = @"[\w]+\.(?:(ActiveSheet|Sheets\[0\])\.Cells)[^\n]+(?:(ActiveSheet|Sheets\[0\])\.ActiveRowIndex)[^\n]+(?:\.Text)[^\n]+",
-                MatchLogic = (m) =>
+                MatchLogic = (m, v) =>
                 {
                     //spdRcptList.ActiveSheet.Cells[spdRcptList.ActiveSheet.ActiveRowIndex, 15].Text.Trim();   //반환여부
                     //SelectedPthoRcptStusByPthoNoModelProperty.15.Trim();                    
@@ -803,7 +803,7 @@ this.CurrentWindow.Top = {1};", values.ElementAt(0), values.ElementAt(1));
             matchReplaceDelegator = new MatchReplaceDelegator()
             {
                 Pattern = @"[\w]+\.(ActiveSheet|Sheets\[0\])\.Cells",
-                MatchLogic = (m) =>
+                MatchLogic = (m, v) =>
                 {
                     var name = m.Value.LeftBySearch(".");
                     var key = name + @"\.DataSource";
@@ -822,7 +822,7 @@ this.CurrentWindow.Top = {1};", values.ElementAt(0), values.ElementAt(1));
             matchReplaceDelegator = new MatchReplaceDelegator()
             {
                 Pattern = @"[\w]+\.(ActiveSheet|Sheets\[0\])\.Columns\[[^\]]+\]\.[^\s]+",
-                MatchLogic = (m) =>
+                MatchLogic = (m, v) =>
                 {
                     var name = m.Value.LeftBySearch(".");
                     var key = name + @"\.DataSource";
@@ -847,7 +847,7 @@ this.CurrentWindow.Top = {1};", values.ElementAt(0), values.ElementAt(1));
             matchReplaceDelegator = new MatchReplaceDelegator()
             {
                 Pattern = @"[\w]+\.(ActiveSheet|Sheets\[0\])",
-                MatchLogic = (m) =>
+                MatchLogic = (m, v) =>
                 {
                     var name = m.Value.LeftBySearch(".");
                     var key = name + @"\.DataSource";
@@ -866,7 +866,7 @@ this.CurrentWindow.Top = {1};", values.ElementAt(0), values.ElementAt(1));
             matchReplaceDelegator = new MatchReplaceDelegator()
             {
                 Pattern = @"[\w]+\.SelectedIndex\s+(==|>|<|>=|<=|<>)\s+[\w]+",
-                MatchLogic = (m) =>
+                MatchLogic = (m, v) =>
                 {
                     var name = m.Value.LeftBySearch(".");                    
                     var key = name + @"\.DataSource";
@@ -889,7 +889,7 @@ this.CurrentWindow.Top = {1};", values.ElementAt(0), values.ElementAt(1));
             matchReplaceDelegator = new MatchReplaceDelegator()
             {
                 Pattern = @"[\w]+\.SelectedIndex\s+=\s+0;",
-                MatchLogic = (m) =>
+                MatchLogic = (m, v) =>
                 {
                     var name = m.Value.LeftBySearch(".");
                     var key = name + @"\.DataSource";
@@ -912,7 +912,7 @@ this.CurrentWindow.Top = {1};", values.ElementAt(0), values.ElementAt(1));
             matchReplaceDelegator = new MatchReplaceDelegator()
             {
                 Pattern = @"[\w]+\.SelectedIndex[\s]+=.*Count - 1;",
-                MatchLogic = (m) =>
+                MatchLogic = (m, v) =>
                 {
                     var name = m.Value.LeftBySearch(".");
                     var key = name + @"\.DataSource";
@@ -935,7 +935,7 @@ this.CurrentWindow.Top = {1};", values.ElementAt(0), values.ElementAt(1));
             matchReplaceDelegator = new MatchReplaceDelegator()
             {
                 Pattern = @"[\w]+(\.Sheets\[0\]|\.ActiveSheet)\.(Rows\.Count|RowCount) (==|>|<|<=|>=|<>)",
-                MatchLogic = (m) =>
+                MatchLogic = (m, v) =>
                 {
                     var name = m.Value.LeftBySearch(".");
                     var key = name + @"\.DataSource";
@@ -957,7 +957,7 @@ this.CurrentWindow.Top = {1};", values.ElementAt(0), values.ElementAt(1));
             matchReplaceDelegator = new MatchReplaceDelegator()
             {
                 Pattern = @"([\w]+)_Sheet1\.Cells\[[\w]+_Sheet1\.ActiveRowIndex\, ",
-                MatchLogic = (m) =>
+                MatchLogic = (m, v) =>
                 {
                     var name = m.Groups[1].Value;
                     var key = name + @"\.SelectedValue";
@@ -977,7 +977,7 @@ this.CurrentWindow.Top = {1};", values.ElementAt(0), values.ElementAt(1));
             matchReplaceDelegator = new MatchReplaceDelegator()
             {
                 Pattern = @"[\w]+ListProperty\[[\w]\]\[""[^\.]+",
-                MatchLogic = (m) =>
+                MatchLogic = (m, v) =>
                 {
                     var vmProperty = m.Value.RegexReturn(@"[\w]+ListProperty");
                     var blocks = m.Value.Substring(m.Value.IndexOf(vmProperty)).GetBlocks(true, "[", "]");
@@ -997,7 +997,7 @@ this.CurrentWindow.Top = {1};", values.ElementAt(0), values.ElementAt(1));
             matchReplaceDelegator = new MatchReplaceDelegator()
             {
                 Pattern = @"[^\n]+ListProperty\.Rows\[\w+\]\[""\w+""\][^\n]+",
-                MatchLogic = (m) =>
+                MatchLogic = (m, v) =>
                 {
                     var vmProperty = m.Value.RegexReturn(@"[\w]+ListProperty");
                     var pName = m.Value.Substring(m.Value.IndexOf(".Rows")).Between(@"[""", @"""]");
@@ -1041,7 +1041,7 @@ this.CurrentWindow.Top = {1};", values.ElementAt(0), values.ElementAt(1));
             {
                 Pattern = @"(Selected([\w]+)Property) = ("".*?"");",
                 RegexOptions = RegexOptions.Multiline,
-                MatchLogic = (m) =>
+                MatchLogic = (m, v) =>
                 {
                     var variable = m.Groups[1].Value;
                     var name = m.Groups[2].Value;
@@ -1061,7 +1061,7 @@ this.CurrentWindow.Top = {1};", values.ElementAt(0), values.ElementAt(1));
             matchReplaceDelegator = new MatchReplaceDelegator()
             {
                 Pattern = @"VisibleProperty[\s]+=+[^;]+",
-                MatchLogic = (m) =>
+                MatchLogic = (m, v) =>
                 {
                     string ret;
                     ret = Regex.Replace(m.Value, "true", "System.Windows.Visibility.Visible", RegexOptions.IgnoreCase);
@@ -1078,7 +1078,7 @@ this.CurrentWindow.Top = {1};", values.ElementAt(0), values.ElementAt(1));
             matchReplaceDelegator = new MatchReplaceDelegator()
             {
                 Pattern = @"(?<=DateProperty\.)(?!ToShortDateString)(.*)",
-                MatchLogic = (m) =>
+                MatchLogic = (m, v) =>
                 {
                     if (m.Value.StartsWith(@"ToString("""))
                         return m.Value;
@@ -1098,7 +1098,7 @@ this.CurrentWindow.Top = {1};", values.ElementAt(0), values.ElementAt(1));
             matchReplaceDelegator = new MatchReplaceDelegator()
             {
                 Pattern = @"[^ ]+ValidateComboBox\([^\);]+\)",
-                MatchLogic = (m) =>
+                MatchLogic = (m, v) =>
                 {
                     var name = m.Value.Between("(", ")").Trim();
                     if (name.IndexOf(".") > 0) name = name.RightBySearch(".").Trim();
@@ -1118,7 +1118,7 @@ this.CurrentWindow.Top = {1};", values.ElementAt(0), values.ElementAt(1));
             matchReplaceDelegator = new MatchReplaceDelegator()
             {
                 Pattern = @"lbl[\w]+\.Tag",
-                MatchLogic = (m) =>
+                MatchLogic = (m, v) =>
                 {
                     var name = m.Value.Between("lbl", ".");
                     var ret = name.ToCamel();
@@ -1143,7 +1143,7 @@ this.CurrentWindow.Top = {1};", values.ElementAt(0), values.ElementAt(1));
 //            matchReplaceDelegator = new MatchReplaceDelegator()
 //            {
 //                Pattern = @"[^\n]+([Cc]ontroller|[Ff]acade)\.[\w]+\([^;]+;",
-//                MatchLogic = (m) =>
+//                MatchLogic = (m, v) =>
 //                {
 //                    var value = m.Value.Trim();
 //                    if (value.StartsWith("//")) return m.Value;
@@ -1203,22 +1203,24 @@ this.CurrentWindow.Top = {1};", values.ElementAt(0), values.ElementAt(1));
         {
             MatchReplaceDelegator matchReplaceDelegator;
 
+            var parametersAtColumn = new FullyDictionary<string, string>();
+            var parametersAtIndex = new FullyDictionary<string, string>();
+
             #region @"(\w+)\[\s*(\d+)\s*\]\.Value\s*=\s*(.*?);",
 
             matchReplaceDelegator = new MatchReplaceDelegator()
-            {
+            {                
                 Pattern = @"(\w+)\[\s*(\d+)\s*\]\.Value\s*=\s*(.*?);",
-                MatchLogic = (m) =>
+                MatchLogic = (m, v) =>
                 {
                     var returnValue = m.Value;
-                    var code = this.OriginalCode.Substring(0, m.Index);
 
                     var varName = m.Groups[1].Value;
                     var index = m.Groups[2].Value;
                     var setValue = m.Groups[3].Value;
 
-                    var pattern = string.Format(@"{0}\[\s*{1}\s*\]\s*=\s*new SqlParameter\(""@(\w+)"",\s*SqlDbType\.(\w+)(?:,\s*(\d+)|)\)\s*;", varName, index);
-                    var matches = Regex.Matches(code, pattern);
+                    var pattern = string.Format(@"{0}\[\s*{1}\s*\]\s*=\s*new SqlParameter\(""@(\w+)"",\s*(?:System\.)*(?:Data\.)*SqlDbType\.(\w+)\s*(?:,\s*(\d+)|)\)\s*;", varName, index);
+                    var matches = Regex.Matches(v, pattern);
 
                     var m1 = matches.Cast<Match>().LastOrDefault();
                     if (m1 != null && m1.Success)
@@ -1238,6 +1240,9 @@ this.CurrentWindow.Top = {1};", values.ElementAt(0), values.ElementAt(1));
                         var setLength = length.Length < 1 ? "" : string.Format(", {0}", length);
                         if (setValue.Length < 1) setValue = "string.Empty";
 
+                        parametersAtColumn[parameterName] = setValue;
+                        parametersAtIndex[index] = setValue;
+
                         //var content = string.Format(@"dynamicParameters.Add(""{0}"", {1}{2}{3}{4});", parameterName, setValue, setDbType, parameterDirection, setLength);
                         var content = string.Format(@"dynamicParameters.Add(""{0}"", {1});", parameterName, setValue);
                         returnValue = content;
@@ -1245,6 +1250,106 @@ this.CurrentWindow.Top = {1};", values.ElementAt(0), values.ElementAt(1));
                     else
                     {
                         Debugger.Break();
+                    }
+
+                    return returnValue;
+                },
+            };
+            ConvertDictionaryByServer.Add(matchReplaceDelegator);
+
+            #endregion
+
+            #region @"(\w+)\[\s*(\d+)\s*\]\.Direction\s*=\s*(ParameterDirection\.\w+);",
+
+            matchReplaceDelegator = new MatchReplaceDelegator()
+            {
+                Pattern = @"(\w+)\[\s*(\d+)\s*\]\.Direction\s*=\s*(ParameterDirection\.\w+);",
+                MatchLogic = (m, v) =>
+                {
+                    var returnValue = m.Value;
+
+                    var varName = m.Groups[1].Value;
+                    var index = m.Groups[2].Value;
+                    var direction = m.Groups[3].Value;
+
+                    var pattern = string.Format(@"{0}\[\s*{1}\s*\]\s*=\s*new SqlParameter\(""@(\w+)"",\s*(?:System\.)*(?:Data\.)*SqlDbType\.(\w+)\s*(?:,\s*(\d+)|)\)\s*;", varName, index);
+                    var matches = Regex.Matches(v, pattern);
+
+                    var m1 = matches.Cast<Match>().LastOrDefault();
+                    if (m1 != null && m1.Success)
+                    {
+                        var parameterName = m1.Groups[1].Value;
+                        var dbType = m1.Groups[2].Value;
+                        var length = m1.Groups[3].Value;
+
+                        if ((dbType == "VarChar" || dbType == "Char" || dbType == "Text" || dbType == "Decimal" || dbType == "Int" || dbType == "SmallInt") != true) Debugger.Break();
+                        
+                        var setDbType = dbType == "Decimal"
+                            ? ", DbType.Double"
+                            : dbType == "Int" || dbType == "SmallInt"
+                            ? ", DbType.Int32"
+                            : ", DbType.String";
+                        var setValue = "string.Empty";
+                        var parameterDirection = string.Format(", {0}", direction);
+                        var setLength = length.Length < 1 ? "" : string.Format(", {0}", length);
+                        
+                        var content = string.Format(@"dynamicParameters.Add(""{0}"", {1}{2}{3}{4});", parameterName, setValue, setDbType, parameterDirection, setLength);
+                        returnValue = content;
+                    }
+                    else
+                    {
+                        Debugger.Break();
+                    }
+
+                    return returnValue;
+                },
+            };
+            ConvertDictionaryByServer.Add(matchReplaceDelegator);
+
+            #endregion
+
+            #region @"\s*=\s*(\w+\[(\d+)\]\.Value(?:\.ToString\(\))*);",
+
+            matchReplaceDelegator = new MatchReplaceDelegator()
+            {
+                Pattern = @"\s*=\s*(\w+\[(\d+)\]\.Value(?:\.ToString\(\))*);",
+                MatchLogic = (m, v) =>
+                {
+                    var returnValue = m.Value;
+
+                    var setValue = m.Groups[1].Value;
+                    var index = m.Groups[2].Value;
+
+                    var pValue = parametersAtIndex[index];
+                    if (string.IsNullOrEmpty(pValue) != true)
+                    {
+                        returnValue = returnValue.Replace(m.Groups[1].Value, pValue);
+                    }
+
+                    return returnValue;
+                },
+            };
+            ConvertDictionaryByServer.Add(matchReplaceDelegator);
+
+            #endregion
+            
+            #region @"[^\n]+new SqlParameter\(""@(\w+)""[^;]+",
+
+            matchReplaceDelegator = new MatchReplaceDelegator()
+            {
+                Pattern = @"[^\n]+new SqlParameter\(""@(\w+)""[^;]+",
+                MatchLogic = (m, v) =>
+                {
+                    var returnValue = m.Value;
+                    var columnName = m.Groups[1].Value;
+
+                    if (v.IndexOf(string.Format("dynamicParameters.Add(\"{0}\"", columnName)) < 0)
+                    {
+                        Debugger.Break();
+                    }
+                    else
+                    {
+                        returnValue = returnValue.RegexReplace(@"(\s+)(.*)", "$1//! $2");
                     }
 
                     return returnValue;
@@ -1290,8 +1395,14 @@ this.CurrentWindow.Top = {1};", values.ElementAt(0), values.ElementAt(1));
         private string ConvertForServer(string code)
         {
             // Step 1
-            foreach (var item in ConvertDictionaryByServer) code = item.Replace(code);
-            
+            foreach(Match m in Regex.Matches(code, @"new SqlParameter\[\d+\];(.*?)", RegexOptions.RightToLeft | RegexOptions.Singleline))
+            {
+                var matchCode = m.Value;
+                foreach (var item in ConvertDictionaryByServer) matchCode = item.Replace(matchCode);
+
+                code = code.Replace(m.Value, matchCode);
+            }
+
             // Step 2
             foreach (var row in ConvertDictionaryByDbForServer.AsEnumerable())
             {
@@ -1372,6 +1483,22 @@ this.CurrentWindow.Top = {1};", values.ElementAt(0), values.ElementAt(1));
         public string MatchGroups { get { return GetPropertyValue(); } set { SetPropertyValue(value); } }
         public string CaptureGroups { get { return GetPropertyValue(); } set { SetPropertyValue(value); } }
 
+        public RegexOptions RegexOptions
+        {
+            get { return GetPropertyValue("RegexOptions"); }
+            set
+            {
+                var currentValue = GetPropertyValue("RegexOptions");
+                if (currentValue.HasFlag(value))
+                    currentValue &= ~value;
+                else
+                    currentValue |= value;
+
+                SetPropertyValue(currentValue, "RegexOptions");
+
+                RunRegex();
+            }
+        }
 
         private void InitRegexTool()
         {
@@ -1420,12 +1547,12 @@ this.CurrentWindow.Top = {1};", values.ElementAt(0), values.ElementAt(1));
         private void RunRegex()
         {
             if (string.IsNullOrEmpty(this.Text)) return;
-
+            
             try
             {                
                 if (string.IsNullOrEmpty(ReplaceRegex))
                 {
-                    var matches = Regex.Matches(this.Text, this.Expression).Cast<Match>();
+                    var matches = Regex.Matches(this.Text, this.Expression, this.RegexOptions).Cast<Match>();
                     var sbResult = new StringBuilder();                    
                     matches.ToList().ForEach(p => sbResult.AppendLine(p.Value));
                     this.MatchResult = sbResult.ToString();
@@ -1568,7 +1695,7 @@ DrgCd";
             var mrd = new MatchReplaceDelegator()
             {
                 Pattern = @"\[[^\]]+]\[[^\]]+]",
-                MatchLogic = (m) =>
+                MatchLogic = (m, v) =>
                 {
                     //selectList[i]["Qty"]
                     var target = m.Value.LastBetween("[", "]", true);
@@ -1596,7 +1723,7 @@ DrgCd";
             mrd = new MatchReplaceDelegator()
             {
                 Pattern = @"Columns\[[\d]+\]",
-                MatchLogic = (m) =>
+                MatchLogic = (m, v) =>
                 {
                     //Columns.[4]
                     var value = m.Value.RegexReturn(@"[\d]+");
@@ -1614,7 +1741,7 @@ DrgCd";
             mrd = new MatchReplaceDelegator()
             {
                 Pattern = @"\[[ \w]+,[ \w]+\]",
-                MatchLogic = (m) =>
+                MatchLogic = (m, v) =>
                 {
                     var value = m.Value.Between("[", "]", false, true);
                     var valueArray = value.Split(",");
@@ -1636,7 +1763,7 @@ DrgCd";
             mrd = new MatchReplaceDelegator()
             {
                 Pattern = @"\[[\d]+\](\.Text)*",
-                MatchLogic = (m) =>
+                MatchLogic = (m, v) =>
                 {
                     var value = m.Value.Between("[", "]", false, true);
                     var column = value.RegexReturn(@"[\d]+");
@@ -1656,7 +1783,7 @@ DrgCd";
             mrd = new MatchReplaceDelegator()
             {
                 Pattern = @"\.[\d]+((\.)*)",
-                MatchLogic = (m) =>
+                MatchLogic = (m, v) =>
                 {
                     var value = m.Value.Between(".", ".", false, true);
                     var column = value.RegexReturn(@"[\d]+");
@@ -1676,7 +1803,7 @@ DrgCd";
             mrd = new MatchReplaceDelegator()
             {
                 Pattern = @"Property\.(\d+)",
-                MatchLogic = (m) =>
+                MatchLogic = (m, v) =>
                 {
                     var index = Convert.ToInt32(m.Groups[1].Value);
                     var name = names.Length > index ? names.ElementAt(index).Trim() : m.Value;
@@ -1692,7 +1819,7 @@ DrgCd";
             mrd = new MatchReplaceDelegator()
             {
                 Pattern = @"\[(.*?)\]",
-                MatchLogic = (m) =>
+                MatchLogic = (m, v) =>
                 {
                     var value = m.Groups[1].Value;
                     if (value.IndexOf(",") > 0)

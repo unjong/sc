@@ -120,6 +120,7 @@
       <DependentUpon>UCCallTreeView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Converters\DataTableToDataViewConverter.cs" />
+    <Compile Include="Converters\EnumFlagConverter.cs" />
     <Compile Include="Converters\FolderIconConverter.cs" />
     <Compile Include="Converters\VisibilityConverter.cs" />
     <Compile Include="Converters\StringToBoolByParamConverter.cs" />
@@ -139,6 +140,7 @@
     <Compile Include="Mvvm\Singleton.cs" />
     <Compile Include="Types\FullyDictionary.cs" />
     <Compile Include="Utils\ResourceHelper.cs" />
+    <Compile Include="Utils\SvnHelper.cs" />
     <Compile Include="Utils\UIHelper.cs" />
     <Compile Include="ViewModels\CodeGeneratorByBizVM.cs" />
     <Compile Include="ViewModels\CodeViewerVM.cs" />

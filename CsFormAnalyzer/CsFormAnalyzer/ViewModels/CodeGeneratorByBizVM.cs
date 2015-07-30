@@ -729,8 +729,8 @@ namespace {2}
 // -----------------------------------------------
 // {3} 작성자({4})
 // ================================================", _ClassName,
- _ClassName,
- TobeBaseName,
+ this.SelectedMethodItem.ClassName,
+ this.SelectedMethodItem.MethodName,
  DateTime.Today.Date.ToShortDateString(),
  Environment.UserName
  ));
